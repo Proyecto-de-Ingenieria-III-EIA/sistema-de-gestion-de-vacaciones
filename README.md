@@ -34,7 +34,7 @@ A modern, type-safe, and feature-rich Next.js boilerplate with best practices ba
 1. Clone the repository:
 
    ```bash
-   git clone [https://github.com/Proyecto-de-Ingenieria-III-EIA/boilerplate](https://github.com/Proyecto-de-Ingenieria-III-EIA/boilerplate)
+   git clone https://github.com/Proyecto-de-Ingenieria-III-EIA/boilerplate
    ```
 
 2. Install dependencies:
