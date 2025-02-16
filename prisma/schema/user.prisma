@@ -1,3 +1,4 @@
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -8,6 +9,13 @@ model User {
   roleId        String?
   accounts      Account[]
   sessions      Session[]
+
+  //Self relation for boss-employee
+  boss          User      @relation("EmployeeToManager", fields: [bossId], references: [id])
+  bossId        String
+  subordinates  User[]    @relation("EmployeeToManager")
+  //Opposite with absence
+  absences      Absence[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
