@@ -11,11 +11,11 @@ model User {
   sessions      Session[]
 
   //Self relation for boss-employee
-  boss          User      @relation("EmployeeToManager", fields: [bossId], references: [id])
+  boss          User      @relation("Employee_To_Manager", fields: [bossId], references: [id])
   bossId        String
-  subordinates  User[]    @relation("EmployeeToManager")
+  subordinates  User[]    @relation("Employee_To_Manager")
   //Opposite with absence
-  absences      Absence[]
+  absences      Absence[] @relation("Absence_Colaborator")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

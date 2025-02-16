@@ -1,0 +1,10 @@
+model Vacation_Policy {
+    vp_id           String @id @default(cuid())
+    year            Int
+    legal_req       Int
+    company_policy  Int
+    active          Boolean
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

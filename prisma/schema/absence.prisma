@@ -1,6 +1,6 @@
 model Absence {
     db_id           String @id @default(cuid())
-    colaborator     User   @relation(fields: [colaboratorId], references: [id])
+    colaborator     User   @relation("Absence_Colaborator", fields: [colaboratorId], references: [id])
     colaboratorId   String
     start_date      DateTime
     end_date        DateTime
@@ -10,22 +10,35 @@ model Absence {
     updatedAt DateTime @updatedAt
 }
 
-model Vacation_policy {
-    vp_id           String @id @default(cuid())
-    year            Int
-    legal_req       Int
-    company_policy  Int
-    active          Boolean
+model Justification {
+  absence_id String @id
+  description String
+  media Json?
+  uploaded_at DateTime
+  comments String?
+  created_at DateTime
+  updated_at DateTime
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  // Relación con la tabla de ausencias (Absence)
+  informal_absence Informal_Absence? @relation("Informal_Absence_Justification", fields: [absence_id], references: [absence_id], map: "informal_absence_justification_fk")
+  spontaneous_absence Spontaneous_Absence? @relation("Spontaneous_Absence_Justification", fields: [absence_id], references: [absence_id], map: "informal_absence_justification_fk")
 }
 
-model Request_Status {
-    db_id           String @id @default(cuid())
-    name            String
-    description     String
+model Informal_Absence {
+  absence_id String @id @default(cuid()) @unique
+  created_at DateTime
+  updated_at DateTime
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  // Relación inversa con Justification
+  justifications Justification? @relation("Informal_Absence_Justification")
+}
+
+model Spontaneous_Absence {
+  absence_id String @id @default(cuid()) @unique
+  comments String
+  created_at DateTime
+  updated_at DateTime
+
+  // Relación inversa con Justification
+  justifications Justification? @relation("Spontaneous_Absence_Justification")
 }
