@@ -18,6 +18,34 @@ This are some notes for the development, since we are currently learning everyth
 
 >>> The `name` parameter in `@relation` is the Prisma-level identifier used for managing relationships in your application code. It won't appear in the database but is used by Prisma to handle the relationship logic. The `map` parameter defines the actual constraint name that will be created in your database schema - this must be unique across all database constraints.
 
+* Primary Keys in Prisma:
+  - Use `@id` to mark a field as the primary key
+  - Only one field can be marked as `@id` per model
+  - Common combinations:
+    ```prisma
+    id String @id @default(cuid())  // auto-generated unique ID
+    id Int @id @default(autoincrement())  // auto-incrementing ID
+    id String @id  // manually set ID
+    ```
+  - For composite/combined primary keys, use `@@id()`:
+    ```prisma
+    model CompositePrimaryKey {
+      firstName String
+      lastName  String
+      age      Int
+      @@id([firstName, lastName])  // Makes firstName + lastName the primary key
+    }
+    ```
+  - You can also create unique composite constraints with `@@unique()`:
+    ```prisma
+    model UniqueComposite {
+      year    Int
+      month   Int
+      day     Int
+      @@unique([year, month, day])  // Combination must be unique
+    }
+    ```
+
 
 ## Github
 * `git fetch` This just download the lastest changes, but does not implement them in your working directory, to implement them you need to run `git checkout origin/master`. Finally to save those changes into your git, just have to run `git merge origin/master`.

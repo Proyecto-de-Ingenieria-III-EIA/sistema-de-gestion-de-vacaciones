@@ -16,6 +16,8 @@ model User {
   subordinates  User[]    @relation("Employee_To_Manager")
   //Opposite with absence
   absences      Absence[] @relation("Absence_Colaborator")
+  //Opposite with requested absence
+  requestedAbsences Requested_Absence[] @relation("Requested_Absence_Aprover")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
