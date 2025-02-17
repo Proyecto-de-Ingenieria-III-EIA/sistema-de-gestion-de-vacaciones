@@ -27,3 +27,24 @@ This are some notes for the development, since we are currently learning everyth
 * `git pull` This command downloads the latest changes and implement them in your git directly.
 
 ## Next
+* Framework Full Stack.
+* Front> React y Back> Typescript
+* Server Side Rendering or Static
+
+`Create next app`
+```
+ npx create-next-app@latest --ts 
+ ```
+ * ts : typescript
+ * App Router is the key of Next
+ * Hot reloading
+
+ `Information about directories`
+ 1. `public`: Images, pdf or any source.
+ 2. `next.config.js`: Add configurations for Sas compilers, web packs, etc.
+ 3. `tsconfig.json`: next configurations as the alias, etc.
+ 4. `.next`: dev or prod. If something fails, delete this directory.
+
+
+
+
