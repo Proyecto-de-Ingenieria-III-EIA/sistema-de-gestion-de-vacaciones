@@ -11,7 +11,7 @@ model User {
   sessions      Session[]
 
   //Self relation for boss-employee
-  boss          User      @relation("Employee_To_Manager", fields: [bossId], references: [id])
+  boss          User      @relation("Employee_To_Manager", fields: [bossId], references: [id], map: "employee_to_manager_fk")
   bossId        String
   subordinates  User[]    @relation("Employee_To_Manager")
   //Opposite with absence

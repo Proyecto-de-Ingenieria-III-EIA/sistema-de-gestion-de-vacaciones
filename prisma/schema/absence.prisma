@@ -1,6 +1,6 @@
 model Absence {
     db_id           String @id @default(cuid())
-    colaborator     User   @relation("Absence_Colaborator", fields: [colaboratorId], references: [id])
+    colaborator     User   @relation("Absence_Colaborator", fields: [colaboratorId], references: [id], map: "absence_colaborator_fk")
     colaboratorId   String
     start_date      DateTime
     end_date        DateTime
@@ -21,7 +21,7 @@ model Justification {
 
   // Relación con la tabla de ausencias (Absence)
   informal_absence Informal_Absence? @relation("Informal_Absence_Justification", fields: [absence_id], references: [absence_id], map: "informal_absence_justification_fk")
-  spontaneous_absence Spontaneous_Absence? @relation("Spontaneous_Absence_Justification", fields: [absence_id], references: [absence_id], map: "informal_absence_justification_fk")
+  spontaneous_absence Spontaneous_Absence? @relation("Spontaneous_Absence_Justification", fields: [absence_id], references: [absence_id], map: "spontaneous_absence_justification_fk")
 }
 
 model Informal_Absence {
