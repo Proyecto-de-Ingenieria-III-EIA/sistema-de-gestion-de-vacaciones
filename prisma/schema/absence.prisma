@@ -48,6 +48,8 @@ model Vacation_Absence {
 
   // Absence table relation
   requestedAbsence Requested_Absence @relation("Requested_Absence", fields: [absence_id], references: [absence_id], map: "vacation_absence_fk")
+  // Vacation_Policy table relation
+  policy Vacation_Policy @relation("Vacation_Policy", fields: [policy_under], references: [vp_id], map: "vacation_policy_fk")
 }
 
 model Informal_Absence {
