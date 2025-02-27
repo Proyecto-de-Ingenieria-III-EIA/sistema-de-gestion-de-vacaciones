@@ -1,6 +1,7 @@
-import { diasEnMesAtom } from "../atoms/atoms"
+import { diasEnMesAtom, mesActualAtom } from "../atoms/atoms"
 import { useAtom } from "jotai"
 import { empleados } from "@/public/mockData"
+
 
 function Content () {
     //Atomos
@@ -22,7 +23,15 @@ function Content () {
 
                 <tbody>
                     { empleados.map((empleado) => (
-                        <tr>
+                        <tr key={ empleado.id }>
+                            <td className="p-2 border-b">
+                                <div>
+                                    <div className="font-medium"> { empleado.name }</div>
+                                    <div className="text-sm text-gray-500"> { empleado.department } </div>
+                                </div>
+                            </td>
+                            
+                            
 
                         </tr>
                     )) }

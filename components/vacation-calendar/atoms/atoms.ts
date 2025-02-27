@@ -1,5 +1,6 @@
 import { atom } from 'jotai'
 
+//mesActual
 export const mesActualAtom = atom(new Date())
 
 // Atomos derivados
@@ -17,7 +18,14 @@ export const diasEnMesAtom = atom((get) => {
     return get(ultimoDiaAtom).getDate();
 });
 
-// Funcion para formatear fechas
+// Formatear fechas
 export const formatearFecha = (fecha: Date) => {
     return new Date(fecha).toISOString().split("T")[0];
+};
+
+// Obtener ausencias
+export const obtenerAusencia = (empleado: any, fecha: Date) => {
+    return empleado.absences.find(
+        (ausencia: any) => fecha >= ausencia.start && fecha <= ausencia.end
+    );
 };
