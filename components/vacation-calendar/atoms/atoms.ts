@@ -1,4 +1,5 @@
 import { atom } from 'jotai'
+import { Employee, Absence } from '@/public/mockData';
 
 //mesActual
 export const mesActualAtom = atom(new Date())
@@ -24,8 +25,12 @@ export const formatearFecha = (fecha: Date) => {
 };
 
 // Obtener ausencias
-export const obtenerAusencia = (empleado: any, fecha: Date) => {
+export const obtenerAusencia = (empleado: Employee, fecha: Date): Absence | undefined => {
+    const fechaFormateada = formatearFecha(fecha);
+    
     return empleado.absences.find(
-        (ausencia: any) => fecha >= ausencia.start && fecha <= ausencia.end
+      (ausencia) => 
+        fechaFormateada >= ausencia.start && 
+        fechaFormateada <= ausencia.end
     );
-};
+  };

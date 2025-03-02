@@ -1,11 +1,12 @@
-import { diasEnMesAtom, mesActualAtom } from "../atoms/atoms"
-import { useAtom } from "jotai"
+import { diasEnMesAtom, obtenerAusencia } from "../atoms/atoms"
+import { useAtomValue } from "jotai"
 import { empleados } from "@/public/mockData"
+import CalendarCell from "../subComponents/CalendarCell"
 
 
 function Content () {
     //Atomos
-    const [diasEnMes] = useAtom(diasEnMesAtom)
+    const diasEnMes = useAtomValue(diasEnMesAtom)
 
     return (
         <div className="overflow-x-auto">
@@ -22,7 +23,7 @@ function Content () {
                 </thead>
 
                 <tbody>
-                    { empleados.map((empleado) => (
+                    { empleados.map(( empleado ) => (
                         <tr key={ empleado.id }>
                             <td className="p-2 border-b">
                                 <div>
@@ -30,16 +31,22 @@ function Content () {
                                     <div className="text-sm text-gray-500"> { empleado.department } </div>
                                 </div>
                             </td>
-                            
+                            { Array.from({ length: diasEnMes }, (_, i) => i + 1).map((dia) => (
+                                <CalendarCell 
+                                    key={ dia }
+                                    dia={ dia }
+                                    empleado={ empleado }
+                                    obtenerAusencia={ obtenerAusencia }
+                                />
+                            )) }
                             
 
                         </tr>
                     )) }
                 </tbody>
-
             </table>
-
         </div>
+        
 
     )
 }
