@@ -4,6 +4,7 @@ import { Employee, Absence } from '@/public/mockData';
 //mesActual
 export const mesActualAtom = atom(new Date())
 
+
 // Atomos derivados
 export const primerDiaAtom = atom((get) => {
     const mesActual = get(mesActualAtom);

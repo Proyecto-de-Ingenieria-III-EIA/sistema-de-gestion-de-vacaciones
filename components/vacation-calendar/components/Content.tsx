@@ -39,8 +39,6 @@ function Content () {
                                     obtenerAusencia={ obtenerAusencia }
                                 />
                             )) }
-                            
-
                         </tr>
                     )) }
                 </tbody>
