@@ -1,0 +1,6 @@
+In graphQL
+When you are making a read operation, that is called a query
+
+When you are making a post, put or delete is a mutation
+
+A subscription is for websockets
