@@ -1,0 +1,15 @@
+.Card {
+    @apply w-full max-w-6xl mx-auto
+}
+
+.Calendar {
+    @apply w-6 h-6
+}
+
+.CardDescription {
+    @apply flex items-center space-x-2
+}
+
+.Users {
+    @apply w-4 h-4
+}
