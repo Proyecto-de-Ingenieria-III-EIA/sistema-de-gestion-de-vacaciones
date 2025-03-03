@@ -17,10 +17,12 @@ model User {
   //Opposite with absence
   absences      Absence[] @relation("Absence_Colaborator")
   //Opposite with requested absence
-  requestedAbsences Requested_Absence[] @relation("Requested_Absence_Aprover")
+  requestedAbsences RequestedAbsence[] @relation("Requested_Absence_Aprover")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("User")
 }
 
 enum Enum_RoleName {
@@ -36,4 +38,6 @@ model Role {
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @default(now()) @map("updated_at")
+  
+  @@map("Role")
 }

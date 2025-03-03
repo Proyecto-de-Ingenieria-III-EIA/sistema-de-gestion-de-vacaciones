@@ -1,11 +1,19 @@
-model Request_Status {
+enum Enum_Requested_Absence_Status_Name {
+  PENDING
+  APROVED
+  REJECTED
+}
+
+model RequestStatus {
     dbId           String @id @default(cuid()) @map("db_id")
-    name            String @map("name")
+    name            Enum_Requested_Absence_Status_Name @map("name")
     description     String @map("description")
 
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
     // Requested_Absence table relation
-    requestedAbsence Requested_Absence[] @relation("Requested_Absence_Status")
+    requestedAbsence RequestedAbsence[] @relation("Requested_Absence_Status")
+
+    @@map("Request_Status")
 }

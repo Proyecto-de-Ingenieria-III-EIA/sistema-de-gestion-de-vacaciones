@@ -11,12 +11,14 @@ model Absence {
     colaborator  User @relation("Absence_Colaborator", fields: [colaboratorId], references: [id], map: "absence_colaborator_fk")
 
     // Inverse relation with Requested_Absence table 
-    requestedAbsence Requested_Absence? @relation("Parent_Absence")
+    requestedAbsence RequestedAbsence? @relation("Parent_Absence")
     // Inverse relation with Spontaneous_Absence table
-    spontaneousAbsence Spontaneous_Absence? @relation("Spontaneous_Absence")
+    spontaneousAbsence SpontaneousAbsence? @relation("Spontaneous_Absence")
+
+    @@map("Absence")
 }
 
-model Requested_Absence {
+model RequestedAbsence {
   absenceId    String   @id @default(cuid()) @map("absence_id")
   status        String  @map("status")
   aprover       String @map("aprover")
@@ -28,17 +30,18 @@ model Requested_Absence {
   // Absence table relation
   absence Absence @relation("Parent_Absence", fields: [absenceId], references: [dbId], map: "requested_absence_fk")
   // Status table relation
-  currentStatus Request_Status @relation("Requested_Absence_Status", fields: [status], references: [dbId], map: "requested_absence_status_fk")
+  currentStatus RequestStatus @relation("Requested_Absence_Status", fields: [status], references: [dbId], map: "requested_absence_status_fk")
   // User table relation
   aproverUser User @relation("Requested_Absence_Aprover", fields: [aprover], references: [id], map: "requested_absence_aprover_fk")
   
   // Inverse relation with Vacation_Absence
-  vacationAbsence Vacation_Absence? @relation("Requested_Absence")
+  vacationAbsence VacationAbsence? @relation("Requested_Absence")
   // Inverse relation with Informal_Absence
-  informalAbsence Informal_Absence? @relation("Informal_Absence")
+  informalAbsence InformalAbsence? @relation("Informal_Absence")
+  @@map("Requested_Absence")
 }
 
-model Vacation_Absence {
+model VacationAbsence {
   absenceId    String   @id @map("absence_id")
   policyUnder  String  @map("policy_under")
 
@@ -46,35 +49,27 @@ model Vacation_Absence {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Absence table relation
-  requestedAbsence Requested_Absence @relation("Requested_Absence", fields: [absenceId], references: [absenceId], map: "vacation_absence_fk")
+  requestedAbsence RequestedAbsence @relation("Requested_Absence", fields: [absenceId], references: [absenceId], map: "vacation_absence_fk")
   // Vacation_Policy table relation
-  policy Vacation_Policy @relation("Vacation_Policy", fields: [policyUnder], references: [dbId], map: "vacation_policy_fk")
+  policy VacationPolicy @relation("Vacation_Policy", fields: [policyUnder], references: [dbId], map: "vacation_policy_fk")
+  @@map("Vacation_Absence")
 }
 
-model Informal_Absence {
+model InformalAbsence {
   absenceId String @id @map("absence_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relation with Requested_Absence
-  requestedAbsence Requested_Absence @relation("Informal_Absence", fields: [absenceId], references: [absenceId], map: "informal_absence_fk")
+  requestedAbsence RequestedAbsence @relation("Informal_Absence", fields: [absenceId], references: [absenceId], map: "informal_absence_fk")
 
   // Inverse relation with Justification
   justifications Justification? @relation("Informal_Absence_Justification")
+
+  @@map("Informal_Absence")
 }
 
-model Absence_Status {
-  dbId String @id() @default(cuid()) @map("db_id")
-  name String @map("name")
-  description String @map("description")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relation with Requested_Absence
-  spontaneousAbsence Spontaneous_Absence[] @relation("Spontaneous_Absence_Status")
-}
-
-model Spontaneous_Absence {
+model SpontaneousAbsence {
   absenceId String @id @map("absence_id")
   comments String @map("comments") 
   absenceStatus String @map("absence_status")
@@ -86,10 +81,12 @@ model Spontaneous_Absence {
   parentAbsence Absence @relation("Spontaneous_Absence", fields: [absenceId], references: [dbId], map: "spontaneous_absence_fk")
 
   // Relation with Absence_Status
-  status Absence_Status @relation("Spontaneous_Absence_Status", fields: [absenceStatus], references: [dbId], map: "spontaneous_absence_status_fk")
+  status SpontaneousAbsenceStatus @relation("Spontaneous_Absence_Status", fields: [absenceStatus], references: [dbId], map: "spontaneous_absence_status_fk")
 
   // Relación inversa con Justification
   justifications Justification? @relation("Spontaneous_Absence_Justification")
+  
+  @@map("Spontaneous_Absence")
 }
 
 model Justification {
@@ -102,8 +99,10 @@ model Justification {
   updatedAt DateTime @updatedAt
 
   // Reation with Informal_Absence table
-  informal_absence Informal_Absence? @relation("Informal_Absence_Justification", fields: [absenceId], references: [absenceId], map: "informal_absence_justification_fk")
+  informalAbsence InformalAbsence? @relation("Informal_Absence_Justification", fields: [absenceId], references: [absenceId], map: "informal_absence_justification_fk")
   // Relation with Spontaneous_Absence table
-  spontaneous_absence Spontaneous_Absence? @relation("Spontaneous_Absence_Justification", fields: [absenceId], references: [absenceId], map: "spontaneous_absence_justification_fk")
+  spontaneousAbsence SpontaneousAbsence? @relation("Spontaneous_Absence_Justification", fields: [absenceId], references: [absenceId], map: "spontaneous_absence_justification_fk")
+
+  @@map("Justification")
 }
 
