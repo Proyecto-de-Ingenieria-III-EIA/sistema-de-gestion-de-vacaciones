@@ -1,15 +1,15 @@
 model Absence {
     db_id           String @id @default(cuid())
-    colaboratorId   String
+    colaborator_id   String
     start_date      DateTime
     end_date        DateTime
     valid           Boolean
 
-    createdAt       DateTime @default(now())
-    updatedAt       DateTime @updatedAt
+    created_at       DateTime @default(now())
+    updated_at       DateTime @updatedAt
 
     // Relation with User table
-    colaborator  User @relation("Absence_Colaborator", fields: [colaboratorId], references: [id], map: "absence_colaborator_fk")
+    colaborator  User @relation("Absence_Colaborator", fields: [colaborator_id], references: [id], map: "absence_colaborator_fk")
 
     // Inverse relation with Requested_Absence table 
     requestedAbsence Requested_Absence? @relation("Parent_Absence")
@@ -23,8 +23,8 @@ model Requested_Absence {
   aprover       String
   decision_date DateTime
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   // Absence table relation
   absence Absence @relation("Parent_Absence", fields: [absence_id], references: [db_id], map: "requested_absence_fk")
@@ -54,8 +54,8 @@ model Vacation_Absence {
 
 model Informal_Absence {
   absence_id String @id
-  created_at DateTime
-  updated_at DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   // Relation with Requested_Absence
   requestedAbsence Requested_Absence @relation("Informal_Absence", fields: [absence_id], references: [absence_id], map: "informal_absence_fk")
@@ -67,8 +67,8 @@ model Informal_Absence {
 model Spontaneous_Absence {
   absence_id String @id
   comments String
-  created_at DateTime
-  updated_at DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   // Relation with Absence
   requestedAbsence Absence @relation("Spontaneous_Absence", fields: [absence_id], references: [db_id], map: "spontaneous_absence_fk")

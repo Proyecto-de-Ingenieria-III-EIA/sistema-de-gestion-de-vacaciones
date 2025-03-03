@@ -33,6 +33,6 @@ model Role {
   name  Enum_RoleName @unique
   users User[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt @default(now())
 }
