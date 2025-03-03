@@ -1,8 +1,14 @@
 import { OurContext } from "@/graphql/context";
-import { User } from "@prisma/client";
+import { User, Role } from "@prisma/client";
+import { ListEndIcon } from "lucide-react";
 
 interface UserByEmailArgs {
     email: string;
+}
+
+interface UpdateUserRole {
+    userId: string;
+    newRoleName: string;
 }
 
 // This is the function that returns the data
@@ -29,6 +35,32 @@ const userResolvers = {
         }
     },
 
+    Mutation: {
+        updateUserRole: async (parent: any, args: UpdateUserRole, { db }: OurContext) => {
+            console.log(args);
+
+            const role = await db.role.findFirst({
+                where: {
+                    name: args.newRoleName,
+                },
+            });
+
+            console.log(role ?? "The role couldn't be found");
+
+            if (!role)
+                throw new Error(`Role with name '${args.newRoleName}' does not exist`);
+
+            return db.user.update({
+                where: {
+                    id: args.userId,
+                },
+                data: {
+                    roleId: role.id
+                }
+            })
+        }
+    },
+
     // And you can also resolve the queries for the other objects inside that user
     User: {
         sessions: async (parent: User, args: null, context: OurContext) => {
@@ -38,6 +70,21 @@ const userResolvers = {
                     userId: parent.id,
                 }
             });
+        },
+
+        role: async (parent: User, args: null, { db }: OurContext) => {
+            const role: [Role] = await db.$queryRaw`
+                SELECT 
+                    r.* 
+                FROM 
+                    "Role" r
+                INNER JOIN 
+                    "User" u ON u."roleId" = r."id"
+                WHERE
+                    u."id" = ${parent.id}
+            `;
+
+            return role[0];
         }
     }
 };

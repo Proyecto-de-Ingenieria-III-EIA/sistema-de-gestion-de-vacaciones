@@ -18,6 +18,8 @@ This are some notes for the development, since we are currently learning everyth
 
 >>> The `name` parameter in `@relation` is the Prisma-level identifier used for managing relationships in your application code. It won't appear in the database but is used by Prisma to handle the relationship logic. The `map` parameter defines the actual constraint name that will be created in your database schema - this must be unique across all database constraints.
 
+* To use `findUnique` in prisma, the field you are trying to find must be annotated with the `@unique`, or `@id` or be part of a composite constraint (`@@unique`)
+
 * Primary Keys in Prisma:
   - Use `@id` to mark a field as the primary key
   - Only one field can be marked as `@id` per model
@@ -45,6 +47,8 @@ This are some notes for the development, since we are currently learning everyth
       @@unique([year, month, day])  // Combination must be unique
     }
     ```
+
+    * To make a raw SQL query in prisma, use ```prisma.$queryRaw``` This will return a promise with the result of the query, and is sql injection safe. Raw queries always return arrays
 
 
 ## Github

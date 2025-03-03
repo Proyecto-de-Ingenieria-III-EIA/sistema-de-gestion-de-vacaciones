@@ -20,6 +20,7 @@ const userTypes = gql`
     email: String
     emailVerified: DateTime
     image: String
+    role: Role
     sessions: [Session]
   } 
   
@@ -29,6 +30,7 @@ const userTypes = gql`
   }
 
   type Mutation{
+    updateUserRole(userId: String, roleName: String): User
     updateUser: User
   }
 `;

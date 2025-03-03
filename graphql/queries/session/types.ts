@@ -8,7 +8,6 @@ const sessionTypes = gql`
     UpdatedAt: DateTime
     user: User
   }
-
 `
 
 export { sessionTypes };

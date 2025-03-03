@@ -2,8 +2,10 @@ import { types, resolvers } from '@/graphql';
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { PrismaClient } from '@prisma/client';
+import { Enum_RoleName, PrismaClient } from '@prisma/client';
 import { OurContext } from '@/graphql/context';
+import { NextApiRequest, NextApiResponse } from 'next';
+import { FailedAuthError } from '@/errors/FailedAuthError';
 
 const prisma = new PrismaClient();
 
@@ -25,10 +27,34 @@ const server = new ApolloServer<OurContext>({
 
 // Here we give the embed the context in the server
 export default startServerAndCreateNextHandler(server, {
-    context: async () => {
-        
+    context: async (req: NextApiRequest, res: NextApiResponse) => {
+        const token = req.headers['session-token'];
+
+        const authData: [{
+                email: string,
+                role: Enum_RoleName,
+                expires: Date,
+            }] = await prisma.$queryRaw`
+            SELECT
+                u."id",
+                r."name" as "role",
+                s."expires" as "expiration_date"
+            FROM
+                "Session" s
+                INNER JOIN "User" u
+                    on s."userId" = u."id"
+                INNER JOIN "Role" r
+                    on u."roleId" = r."id"
+            WHERE
+                s."sessionToken" = ${token}
+        `;
+
+        if (!authData[0])
+            throw new FailedAuthError();
+
         return {
             db: prisma,
+            authData: authData[0],
         };
     }
 });
