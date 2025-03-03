@@ -48,7 +48,6 @@ export default startServerAndCreateNextHandler(server, {
             WHERE
                 s."sessionToken" = ${token}
         `;
-
         if (!authData[0])
             throw new FailedAuthError();
 

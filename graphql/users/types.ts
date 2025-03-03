@@ -23,16 +23,6 @@ const userTypes = gql`
     role: Role
     sessions: [Session]
   } 
-  
-  type Query {
-    getUsers: [User]
-    getUserByEmail (email: String!): User
-  }
-
-  type Mutation{
-    updateUserRole(userId: String, roleName: String): User
-    updateUser: User
-  }
 `;
 
 export { userTypes };

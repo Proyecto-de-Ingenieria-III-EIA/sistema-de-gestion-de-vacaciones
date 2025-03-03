@@ -1,6 +1,5 @@
 import { OurContext } from "@/graphql/context";
-import { User, Role } from "@prisma/client";
-import { ListEndIcon } from "lucide-react";
+import { User, Role, Enum_RoleName } from "@prisma/client";
 
 interface UserByEmailArgs {
     email: string;
@@ -8,7 +7,7 @@ interface UserByEmailArgs {
 
 interface UpdateUserRole {
     userId: string;
-    newRoleName: string;
+    newRoleName: Enum_RoleName;
 }
 
 // This is the function that returns the data
