@@ -1,13 +1,16 @@
 model Vacation_Policy {
-    vp_id           String @id @default(cuid())
-    year            Int
-    legal_requirements     Int
-    company_policy  Int
-    active          Boolean
+    dbId           String @id @default(cuid()) @map("db_id")
+    year            Int @map("year")
+    legalRequirements     Int @map("legal_requirements")
+    companyPolicy  Int @map("company_policy")
+    active          Boolean @map("active")
 
-    created_at DateTime @default(now())
-    updated_at DateTime @updatedAt
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     // Inverse relation with Vacation_Absence table
     vacationAbsence Vacation_Absence[] @relation("Vacation_Policy")
+
+
+    @@map("Vacation_Policy")
 }

@@ -1,10 +1,10 @@
 model Request_Status {
-    db_id           String @id @default(cuid())
-    name            String
-    description     String
+    dbId           String @id @default(cuid()) @map("db_id")
+    name            String @map("name")
+    description     String @map("description")
 
-    created_at DateTime @default(now())
-    updated_at DateTime @updatedAt
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     // Requested_Absence table relation
     requestedAbsence Requested_Absence[] @relation("Requested_Absence_Status")
