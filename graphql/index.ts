@@ -5,6 +5,7 @@ import { roleThings } from "./role/combiner";
 
 const defaultTypes = gql`
     scalar DateTime
+    scalar JSON
 `;
 
 const types = [

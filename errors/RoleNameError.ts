@@ -5,7 +5,7 @@ export class RoleNameError extends Error implements CustomErrorInterface {
 
     constructor(message = "Invalid Role Name") {
         super(message);
-        this.name = "Failed Auth Error";
+        this.name = "Invalid Role Name Error";
         this.statusCode = 400;
         
         // This is needed to maintain proper stack traces

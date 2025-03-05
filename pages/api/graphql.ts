@@ -31,7 +31,7 @@ export default startServerAndCreateNextHandler(server, {
         const token = req.headers['session-token'];
 
         const authData: [{
-                email: string,
+                userId: string,
                 role: Enum_RoleName,
                 expires: Date,
             }] = await prisma.$queryRaw`

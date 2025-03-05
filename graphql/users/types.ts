@@ -21,6 +21,8 @@ const userTypes = gql`
     emailVerified: DateTime
     image: String
     role: Role
+
+    absences: [Absence]
     sessions: [Session]
   } 
 `;

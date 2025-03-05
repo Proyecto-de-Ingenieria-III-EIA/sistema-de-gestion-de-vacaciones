@@ -1,3 +1,4 @@
+import { NotSufficentCredentialsError } from "@/errors/NotSufficentCredentialsError";
 import { OurContext } from "@/graphql/context";
 import { User, Role, Enum_RoleName } from "@prisma/client";
 
@@ -15,7 +16,7 @@ const userResolvers = {
 
     // You can resolve the queries for the user perse
     Query: {
-        getUsers: async (parent: User, args: null, context: OurContext) => {
+        getUsers: async (parent: null, args: null, context: OurContext) => {
             return await context.db.user.findMany();
         },
 
@@ -25,10 +26,32 @@ const userResolvers = {
         // args: This is the arguments that are passed to the query
         // context: This is the context that is passed to the query
         // info: This is the information about the query that is being executed
-        getUserByEmail: async (parent: User, args: UserByEmailArgs, context: OurContext) => {
+        getUserByEmail: async (parent: null, args: UserByEmailArgs, context: OurContext) => {
             return await context.db.user.findUnique({
                 where : {
                     email: args.email
+                }
+            });
+        },
+
+        // Get the current logged in user
+        getCurrentUser: async (parent: null, args: null, { db, authData }: OurContext) => {
+            return await db.user.findUnique({
+                where: {
+                    id: authData.userId,
+                }
+            });
+        },
+
+        // Get the user by id
+        getUserById: async (parent: null, args: { id: string }, { db, authData }: OurContext) => {
+            if (authData.role !== Enum_RoleName.ADMIN) {
+                throw new NotSufficentCredentialsError("You are not allowed to do this operation");
+            }
+
+            return await db.user.findUnique({
+                where: {
+                    id: args.id,
                 }
             });
         }
@@ -84,7 +107,17 @@ const userResolvers = {
             `;
 
             return role[0];
-        }
+        },
+
+        absence: async (parent: User, args: null, { db }: OurContext) => {
+            // TODO: restrict acces to only the allowed users
+
+            return db.absence.findMany({
+                where: {
+                    colaboratorId: parent.id,
+                }
+            });
+        },
     }
 };
 

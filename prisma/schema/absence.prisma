@@ -64,7 +64,7 @@ model InformalAbsence {
   requestedAbsence RequestedAbsence @relation("Informal_Absence", fields: [absenceId], references: [absenceId], map: "informal_absence_fk")
 
   // Inverse relation with Justification
-  justifications Justification? @relation("Informal_Absence_Justification")
+  justification Justification? @relation("Informal_Absence_Justification")
 
   @@map("Informal_Absence")
 }
@@ -73,6 +73,7 @@ model SpontaneousAbsence {
   absenceId String @id @map("absence_id")
   comments String @map("comments") 
   absenceStatus String @map("absence_status")
+  
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -93,8 +94,9 @@ model Justification {
   absenceId String @id @map("absence_id")
   description String @map("description")
   media Json? @map("media")
-  uploadedAat DateTime @map("uploaded_at")
+  uploadedAt DateTime @map("uploaded_at")
   comments String? @map("comments")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt
 
