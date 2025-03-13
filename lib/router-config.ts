@@ -35,6 +35,14 @@ export const routerConfig: RouteConfig[] = [
     icon: LogIn,
     showInSidebar: false,
   },
+  {
+    id: 'userUpload',
+    name: 'User Upload',
+    path: '/user-upload',
+    isPublic: false,
+    icon: Home,
+    showInSidebar: true,
+  },
   // Add more routes as needed
 ];
 
