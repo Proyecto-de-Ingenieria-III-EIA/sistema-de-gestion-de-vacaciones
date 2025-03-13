@@ -1,4 +1,4 @@
-import { diasEnMesAtom, obtenerAusencia } from "../atoms/atoms"
+import { diasEnMesAtom, obtenerAusencia } from "../../atoms/atoms"
 import { useAtomValue } from "jotai"
 import { empleados } from "@/public/mockData"
 import CalendarCell from "../subComponents/CalendarCell"

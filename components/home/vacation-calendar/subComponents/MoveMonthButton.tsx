@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useAtom } from "jotai";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { mesActualAtom } from "../atoms/atoms";
+import { mesActualAtom } from "../../atoms/atoms";
 
 
 interface MoveMonthButtonProps {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { mesActualAtom } from '../atoms/atoms';
+import { mesActualAtom } from '../../atoms/atoms';
 import { Employee, Absence } from '@/public/mockData';
 import { useAtomValue } from 'jotai';
 

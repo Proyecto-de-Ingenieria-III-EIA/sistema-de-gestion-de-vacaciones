@@ -6,7 +6,7 @@ import { Users } from "lucide-react"
 import '../VacationCalendar.css'
 import MoveMonthButton from "../subComponents/MoveMonthButton"
 import { useAtom } from "jotai"
-import { mesActualAtom } from "../atoms/atoms"
+import { mesActualAtom } from "../../atoms/atoms"
 
 
 
