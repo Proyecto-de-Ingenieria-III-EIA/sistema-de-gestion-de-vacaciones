@@ -1,0 +1,5 @@
+const justificationResolvers = {
+
+};
+
+export { justificationResolvers };

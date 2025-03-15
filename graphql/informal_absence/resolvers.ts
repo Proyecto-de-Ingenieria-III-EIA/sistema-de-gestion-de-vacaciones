@@ -1,0 +1,5 @@
+const informalAbsenceResolvers = {
+
+};
+
+export { informalAbsenceResolvers };

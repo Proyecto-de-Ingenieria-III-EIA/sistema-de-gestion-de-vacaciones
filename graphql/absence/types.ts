@@ -16,5 +16,6 @@ const absenceTypes = gql`
         requestedAbsence: RequestedAbsence
         spontaneousAbsence: SpontaneousAbsence
     }
-`
+`;
+
 export { absenceTypes };

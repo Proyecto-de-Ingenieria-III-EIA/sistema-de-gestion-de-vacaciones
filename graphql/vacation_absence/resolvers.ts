@@ -1,0 +1,4 @@
+const vacationAbsenceResolvers = {
+};
+
+export { vacationAbsenceResolvers };

@@ -1,0 +1,5 @@
+const spontaneousAbsenceResolvers = {
+
+};
+
+export { spontaneousAbsenceResolvers };

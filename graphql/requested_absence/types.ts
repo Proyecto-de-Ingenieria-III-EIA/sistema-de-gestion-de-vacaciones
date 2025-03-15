@@ -1,6 +1,6 @@
 import gql from "graphql-tag";
 
-const requestedAbsenceType = gql`
+const requestedAbsenceTypes = gql`
  type RequestedAbsence {
         absenceId: ID
         status: String
@@ -17,6 +17,23 @@ const requestedAbsenceType = gql`
         vacationAbsence: vacationAbsence
         informalAbsence: informalAbsence
     }
+
+  type WholeRequestedAbsence {
+    dbId: ID
+    colaboratorId: ID
+    startDate: DateTime
+    endDate: DateTime
+    decisionDate: DateTime
+
+    status: RequestStatus
+    aprover: User
+
+    createdAt: DateTime
+    updatedAt: DateTime
+
+    vacationAbsence: VacationAbsence
+    informalAbsence: InformalAbsence
+  }
 `;
 
-export { requestedAbsenceType };
+export { requestedAbsenceTypes };
