@@ -1,0 +1,14 @@
+.footer {
+    background: linear-gradient(to right, #005A8D 25%, #73B4DA 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.brand {
+    font-weight: bold;
+}

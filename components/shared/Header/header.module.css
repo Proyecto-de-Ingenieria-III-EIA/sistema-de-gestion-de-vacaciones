@@ -1,0 +1,22 @@
+.header {
+    background: linear-gradient(to right, #005A8D 25%, #73B4DA 100%);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    column-gap: 2rem;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    width: 100%;
+    background-repeat: no-repeat;
+    border-bottom-right-radius: 20%;
+    border-bottom-left-radius: 20%;
+}
+
+.logo {
+    width: 4.8%;
+    border-radius: 50%;
+    padding: 10px 0;
+}
