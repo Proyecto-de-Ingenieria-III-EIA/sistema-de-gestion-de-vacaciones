@@ -1,5 +1,5 @@
 .header {
-    background: linear-gradient(to right, #005A8D 25%, #73B4DA 100%);
+    background: linear-gradient(to left, #005A8D 25%, #73B4DA 100%);
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -13,6 +13,11 @@
     background-repeat: no-repeat;
     border-bottom-right-radius: 20%;
     border-bottom-left-radius: 20%;
+    font-family: Arial;
+    font-size: 2rem;
+    color: white;
+    margin-bottom: 5px;
+    font-weight: bold;
 }
 
 .logo {

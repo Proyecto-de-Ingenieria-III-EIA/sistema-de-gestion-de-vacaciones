@@ -7,8 +7,15 @@
     width: 100%;
     padding: 1rem;
     box-sizing: border-box;
+    color: white;
+    font-size: 10px;
+    font-family: Arial;
+    font-weight: bold;
+    border-top-right-radius: 20%;
+    border-top-left-radius: 20%;
 }
 
 .brand {
     font-weight: bold;
+    color: white;
 }

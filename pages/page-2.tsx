@@ -1,4 +1,4 @@
-import { VacationCalendar } from '@/components/home/vacation-calendar';
+import { VacationCalendar } from '@/components/home/vacation-calendar/VacationCalendar';
 
 const Page2 = () => {
   return (
