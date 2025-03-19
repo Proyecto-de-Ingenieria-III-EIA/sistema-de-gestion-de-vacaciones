@@ -5,7 +5,7 @@ const Footer: React.FC = () => {
   return (
     <footer className={styles.footer}>
       <p>
-        All rights reserved for <span className={styles.brand}>Los Arturos©</span>
+      © {new Date().getFullYear()} <span className={styles.brand}>Los Arturos</span> All rights reserved.
       </p>
     </footer>
   );
