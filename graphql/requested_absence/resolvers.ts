@@ -1,5 +1,7 @@
 import { OurContext } from "../context";
 import { RequestedAbsence, VacationAbsence, InformalAbsence, RequestStatus, User } from "@prisma/client";
+import { NotSufficentCredentialsError } from "@/errors/NotSufficentCredentialsError";
+import { Enum_RoleName } from "@prisma/client";
 
 interface WholeRequestedAbsence {
     dbId: string;
@@ -21,6 +23,10 @@ interface WholeRequestedAbsence {
 const requestedAbsenceResolvers = {
     Query: {
         getAbsencesTimePeriod: async (parent: null, args: { startDate: Date, endDate: Date}, context: OurContext) => {
+            if (!context.authData || context.authData.role !== Enum_RoleName.ADMIN) {
+                throw new NotSufficentCredentialsError();
+            }
+
             const requestedAbsences: [WholeRequestedAbsence] = await context.db.$queryRaw`
                 SELECT
                     absence."db_id" as "dbId",
@@ -55,13 +61,20 @@ const requestedAbsenceResolvers = {
     },
 
     WholeRequestedAbsence: {
-        User: async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
+        colaboratorId : async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
             return context.db.user.findFirst({
                 where: {
                     id: parent.colaboratorId,
                 }
             });
-        }
+        },
+        aprover : async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
+            return context.db.user.findFirst({
+                where: {
+                    id: parent.colaboratorId,
+                }
+            });
+        },
     }
 };
 
