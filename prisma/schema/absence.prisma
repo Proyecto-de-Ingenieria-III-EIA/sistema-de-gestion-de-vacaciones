@@ -22,7 +22,7 @@ model RequestedAbsence {
   absenceId    String   @id @default(cuid()) @map("absence_id")
   status        String  @map("status")
   aprover       String @map("aprover")
-  decisionDate DateTime @map("decision_date")
+  decisionDate DateTime? @map("decision_date")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

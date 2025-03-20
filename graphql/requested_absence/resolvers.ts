@@ -31,6 +31,11 @@ const requestedAbsenceResolvers = {
                     request."status" as "status",
                     request."aprover" as "aprover",
 
+                    CASE vacation."absence_id"
+                        WHEN NULL THEN 'INFORMAL'
+                        ELSE 'VACATION'
+                    END as "type",
+
                     absence."created_at" as "createdAt",
                     absence."updated_at" as "updatedAt",
 
@@ -39,6 +44,7 @@ const requestedAbsenceResolvers = {
                 FROM
                     "Requested_Absence" as request
                     INNER JOIN "Absence" as absence ON absence."db_id" = request."absence_id"
+                    LEFT JOIN "Vacation_Absence" as vacation ON vacation."absence_id" = absence."db_id"
                 
                 WHERE
                     request."start_date" <= ${args.endDate} AND request."end_date" >= ${args.startDate}
@@ -46,6 +52,16 @@ const requestedAbsenceResolvers = {
             
             return requestedAbsences;
         },
+    },
+
+    WholeRequestedAbsence: {
+        User: async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
+            return context.db.user.findFirst({
+                where: {
+                    id: parent.colaboratorId,
+                }
+            });
+        }
     }
 };
 

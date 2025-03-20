@@ -1,38 +1,41 @@
 import gql from "graphql-tag";
 
 const requestedAbsenceTypes = gql`
- type RequestedAbsence {
-        absenceId: ID
-        status: String
-        aprover: ID
-        decisionDate: DateTime
+  enum RequestedAbsenceType {
+    VACATION
+    INFORMAL
+  }
 
-        createdAt: DateTime
-        updatedAt: DateTime
+  type RequestedAbsence {
+    absenceId: ID
+    status: String
+    aprover: ID
+    decisionDate: DateTime
 
-        absence: Absence
-        currentStatus: RequestStatus
-        aproverUser: User
+    createdAt: DateTime
+    updatedAt: DateTime
 
-        vacationAbsence: VacationAbsence
-        informalAbsence: InformalAbsence
-    }
+    absence: Absence
+    currentStatus: RequestStatus
+    aproverUser: User
+
+    vacationAbsence: VacationAbsence
+    informalAbsence: InformalAbsence
+  }
 
   type WholeRequestedAbsence {
     dbId: ID
-    colaboratorId: ID
+    colaboratorId: User
     startDate: DateTime
     endDate: DateTime
     decisionDate: DateTime
+    type: RequestedAbsenceType
 
     status: RequestStatus
     aprover: User
 
     createdAt: DateTime
     updatedAt: DateTime
-
-    vacationAbsence: VacationAbsence
-    informalAbsence: InformalAbsence
   }
 `;
 
