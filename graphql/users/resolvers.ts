@@ -109,7 +109,7 @@ const userResolvers = {
             return role[0];
         },
 
-        absence: async (parent: User, args: null, { db }: OurContext) => {
+        absences: async (parent: User, args: null, { db }: OurContext) => {
             // TODO: restrict acces to only the allowed users
 
             return db.absence.findMany({

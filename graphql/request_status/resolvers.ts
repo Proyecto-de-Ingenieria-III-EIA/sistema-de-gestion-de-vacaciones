@@ -1,7 +1,7 @@
 import gql from "graphql-tag";
 
-const requestStatusResolvers = gql`
-  
-`;
+const requestStatusResolvers = {
+    
+};
 
 export { requestStatusResolvers };

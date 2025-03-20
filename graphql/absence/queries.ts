@@ -4,7 +4,7 @@ import { gql } from "graphql-tag";
 // See the mutations file of absence to see an example of a place holder, this so the API can run
 const absenceQueries = gql`
   type Query {
-    
+    getAllAbsences: [Absence]
   }
 `;
 

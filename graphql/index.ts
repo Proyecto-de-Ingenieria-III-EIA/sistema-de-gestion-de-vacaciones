@@ -10,7 +10,7 @@ import { spontaneousAbsenceThings, spontaneousAbsenceResolvers } from "./spontan
 import { spontaneousAbsenceStatusThings, spontaneousAbsenceStatusResolvers } from "./spontaneous_absence_status/combiner";
 import { vacationAbsenceThings, vacationAbsenceResolvers } from "./vacation_absence/combiner";
 import { vacationPolicyThings, vacationPolicyResolvers } from "./vacation_policy/combiner";
-
+import { requestedAbsenceThings, requestedAbsenceResolvers } from "./requested_absence/combiner";
 
 const defaultTypes = gql`
     scalar DateTime
@@ -29,6 +29,7 @@ const types = [
     ...spontaneousAbsenceStatusThings,
     ...vacationAbsenceThings,
     ...vacationPolicyThings,
+    ...requestedAbsenceThings,
     defaultTypes, 
 ];
 
@@ -42,6 +43,7 @@ const resolvers = [
     spontaneousAbsenceStatusResolvers,
     vacationAbsenceResolvers,
     vacationPolicyResolvers,
+    requestedAbsenceResolvers,
 ];
 
 export {

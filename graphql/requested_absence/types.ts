@@ -14,8 +14,8 @@ const requestedAbsenceTypes = gql`
         currentStatus: RequestStatus
         aproverUser: User
 
-        vacationAbsence: vacationAbsence
-        informalAbsence: informalAbsence
+        vacationAbsence: VacationAbsence
+        informalAbsence: InformalAbsence
     }
 
   type WholeRequestedAbsence {
