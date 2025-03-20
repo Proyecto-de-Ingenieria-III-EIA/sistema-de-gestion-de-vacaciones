@@ -10,7 +10,7 @@ interface WholeRequestedAbsence {
     endDate: Date;
     decisionDate: Date;
 
-    status: RequestStatus;
+    status: string;  // The status Id
     aprover: User;
 
     createdAt: Date;
@@ -22,12 +22,15 @@ interface WholeRequestedAbsence {
 
 const requestedAbsenceResolvers = {
     Query: {
-        getAbsencesTimePeriod: async (parent: null, args: { startDate: Date, endDate: Date}, context: OurContext) => {
+        getAbsencesTimePeriod: async (parent: null, args: { startDate: string, endDate: string}, context: OurContext) => {
             if (!context.authData || context.authData.role !== Enum_RoleName.ADMIN) {
                 throw new NotSufficentCredentialsError();
             }
 
-            const requestedAbsences: [WholeRequestedAbsence] = await context.db.$queryRaw`
+            const startDate = new Date(args.startDate);
+            const endDate = new Date(args.endDate);
+
+            return await context.db.$queryRaw`
                 SELECT
                     absence."db_id" as "dbId",
                     absence."colaborator_id" as "colaboratorId",
@@ -53,10 +56,8 @@ const requestedAbsenceResolvers = {
                     LEFT JOIN "Vacation_Absence" as vacation ON vacation."absence_id" = absence."db_id"
                 
                 WHERE
-                    request."start_date" <= ${args.endDate} AND request."end_date" >= ${args.startDate}
+                    absence."start_date" <= ${endDate} AND absence."end_date" >= ${startDate}
             `;
-            
-            return requestedAbsences;
         },
     },
 
@@ -75,6 +76,13 @@ const requestedAbsenceResolvers = {
                 }
             });
         },
+        status: async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
+            return context.db.requestStatus.findFirst({
+                where: {
+                    dbId: parent.status,
+                },
+            });
+        }
     }
 };
 
