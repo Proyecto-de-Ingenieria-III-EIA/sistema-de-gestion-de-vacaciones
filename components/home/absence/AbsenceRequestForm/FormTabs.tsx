@@ -12,29 +12,19 @@ const FormTabs = () => {
 
   const absenceTypes = [
     { id: 'vacaciones', label: 'Vacaciones', icon: Plane, color: 'bg-green-500' },
-    { id: 'enfermedad', label: 'Enfermedad', icon: FileText, color: 'bg-red-500' },
-    { id: 'estudios', label: 'Estudios', icon: BookOpen, color: 'bg-blue-500' },
     { id: 'permiso', label: 'Permiso Personal', icon: FileEdit, color: 'bg-amber-500' },
   ];
 
   // Campos adicionales según el tipo de ausencia.
   const additionalFields: Record<string, any[]> = {
     vacaciones: [
-      { id: 'availableDays', label: 'Días disponibles', type: 'info', value: '22 días' },
+      { id: 'availableDays', label: 'Días disponibles', type: 'info', value: 'dias de descanso' },
       { id: 'replacement', label: 'Persona que te sustituye', type: 'select' },
-    ],
-    enfermedad: [
-      { id: 'medicalReport', label: 'Informe médico', type: 'file' },
-      { id: 'symptoms', label: 'Síntomas', type: 'textarea' },
-    ],
-    estudios: [
-      { id: 'institution', label: 'Centro educativo', type: 'input' },
-      { id: 'courseDetails', label: 'Detalles del curso', type: 'textarea' },
-      { id: 'certificate', label: 'Certificado de inscripción', type: 'file' },
     ],
     permiso: [
       { id: 'reason', label: 'Motivo', type: 'textarea' },
       { id: 'urgency', label: 'Nivel de urgencia', type: 'select', options: ['Baja', 'Media', 'Alta'] },
+      { id: 'additionalInfo', label: 'Informacion Adicional', type: 'file' },
     ],
   };
 
@@ -44,18 +34,21 @@ const FormTabs = () => {
 
   return (
     <Tabs value={form.currentTab} onValueChange={handleTabChange} className="w-full">
-      <div className="px-6">
-        <TabsList className="grid grid-cols-4 mb-4">
+      <div className="w-full flex justify-center">
+        <TabsList className="flex gap-8 bg-transparent p-4 mt-4">
           {absenceTypes.map((type) => (
             <TabsTrigger
               key={type.id}
               value={type.id}
-              className="flex flex-col items-center py-3 gap-1"
-            >
-              <div className={`p-2 rounded-full ${type.color} text-white`}>
-                <type.icon className="w-5 h-5" />
+              className="flex flex-col items-center py-3 gap-1 data-[state=active]:bg-gray-200 rounded-lg transition-all"
+              >
+              {/* Ícono dentro del fondo gris */}
+              <div
+                className={`p-3 rounded-full ${type.color} text-white flex justify-center items-center`}
+              >
+                <type.icon className="w-6 h-6" />
               </div>
-              <span>{type.label}</span>
+              <span className="text-sm font-medium">{type.label}</span>
             </TabsTrigger>
           ))}
         </TabsList>
@@ -77,14 +70,6 @@ const FormTabs = () => {
             </div>
           ))}
 
-          {type.id === 'enfermedad' && (
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                Recuerda que debes notificar tu ausencia a tu supervisor inmediatamente.
-              </AlertDescription>
-            </Alert>
-          )}
         </TabsContent>
       ))}
     </Tabs>
