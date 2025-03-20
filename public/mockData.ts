@@ -39,3 +39,22 @@ export interface Employee {
       ]
     }
   ];  
+
+  export const employeesMock = [
+    { id: '1', name: 'Ana García', department: 'Desarrollo' },
+    { id: '2', name: 'Carlos Ruiz', department: 'Diseño' },
+    { id: '3', name: 'María López', department: 'Marketing' },
+    { id: '4', name: 'David Sánchez', department: 'Finanzas' }
+  ];
+  
+  export const absenceRequestsMock = [
+    {
+      id: '101',
+      startDate: '2025-03-10',
+      endDate: '2025-03-15',
+      type: 'vacaciones',
+      colaboratorId: '1',
+      additionalFields: { reason: 'Viaje personal' }
+    }
+  ];
+  

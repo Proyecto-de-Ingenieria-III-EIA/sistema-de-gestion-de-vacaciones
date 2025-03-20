@@ -1,7 +1,14 @@
-export const Footer = () => {
-    return (
-        <footer className='bg-gray-800 text-white p-4'>
-        <h1 className='text-2xl'>Footer</h1>
-        </footer>
-    );
-    }
+import React from "react";
+import styles from "./footer.module.css"; // Importamos los estilos
+
+const Footer: React.FC = () => {
+  return (
+    <footer className={styles.footer}>
+      <p>
+      © {new Date().getFullYear()} <span className={styles.brand}>Los Arturos</span> All rights reserved.
+      </p>
+    </footer>
+  );
+};
+
+export default Footer;

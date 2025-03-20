@@ -20,8 +20,8 @@ export const routerConfig: RouteConfig[] = [
     showInSidebar: true,
   },
   {
-    id: 'home',
-    name: 'Page 2',
+    id: 'evc',
+    name: 'Employee Vacation Calendar',
     path: '/page-2',
     isPublic: false,
     icon: Home,

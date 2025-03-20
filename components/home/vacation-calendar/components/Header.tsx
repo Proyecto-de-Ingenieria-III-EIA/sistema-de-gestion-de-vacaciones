@@ -10,7 +10,7 @@ import { mesActualAtom } from "../../atoms/atoms"
 
 
 
-function Header () {
+function HeaderCalendar () {
     //useAtom de jotai
     const [mesActual] = useAtom(mesActualAtom)
 
@@ -39,4 +39,4 @@ function Header () {
 
 }
 
-export { Header }
+export { HeaderCalendar }

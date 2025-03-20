@@ -18,7 +18,7 @@ const AppSidebar = () => {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>AppLogo</SidebarGroupLabel>
+          <SidebarGroupLabel>Los Arturos</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {sidebarItems.map((item) => (

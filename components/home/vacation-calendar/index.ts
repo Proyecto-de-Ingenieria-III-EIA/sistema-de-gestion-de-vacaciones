@@ -1,1 +1,0 @@
-export { VacationCalendar } from './VacationCalendar'
