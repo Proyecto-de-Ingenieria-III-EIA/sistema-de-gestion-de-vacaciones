@@ -10,11 +10,27 @@ const FormDates = () => {
   const [form, setForm] = useAtom(absenceFormAtom);
 
   const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, startDate: e.target.value }));
+    const newStartDate=e.target.value
+    const today = new Date().toISOString().split("T")[0] //FORMATO YYYY-MM-DD
+
+    if(newStartDate<today) return //para que no coja fechas pasadas
+
+    setForm((prev) => ({ 
+      ...prev, 
+      startDate: e.target.value,
+     endDate: prev.endDate && prev.endDate<newStartDate ? "" : prev.endDate //resetea endDate si es invalida
+     }));
   };
 
   const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, endDate: e.target.value }));
+    const newEndDate = e.target.value;
+
+    if(form.startDate && newEndDate<form.startDate) return; //evita fechas menores a startDate
+
+    setForm((prev) => ({
+       ...prev, 
+       endDate: newEndDate
+       }));
   };
 
   const calculateDays = () => {
@@ -42,6 +58,7 @@ const FormDates = () => {
               value={form.startDate}
               onChange={handleStartDateChange}
               required
+              min={new Date().toISOString().split("T")[0]} //restringe fechas pasadas
             />
           </div>
         </div>
@@ -56,6 +73,7 @@ const FormDates = () => {
               value={form.endDate}
               onChange={handleEndDateChange}
               required
+              min={form.startDate || new Date().toISOString().split("T")[0]} //restringe a startDate o hoy
             />
           </div>
         </div>

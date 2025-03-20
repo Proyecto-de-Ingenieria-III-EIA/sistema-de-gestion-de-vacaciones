@@ -3,7 +3,7 @@ import { atom } from 'jotai';
 export interface AbsenceFormState {
   startDate: string;
   endDate: string;
-  currentTab: 'vacaciones' | 'enfermedad' | 'estudios' | 'permiso';
+  currentTab: 'vacaciones'| 'permiso';
   formSubmitted: boolean;
   // Datos adicionales
   additionalData: Record<string, any>;
