@@ -3,12 +3,16 @@ model Absence {
     colaboratorId   String @map("colaborator_id")
     startDate      DateTime @map("start_date")
     endDate        DateTime @map("end_date")
+    createdBy      String @map("created_by") @default("")
 
     createdAt       DateTime @default(now()) @map("created_at")
     updatedAt       DateTime @updatedAt @map("updated_at")
 
     // Relation with User table
     colaborator  User @relation("Absence_Colaborator", fields: [colaboratorId], references: [id], map: "absence_colaborator_fk")
+
+    // Relation with User table
+    creator User @relation("Absence_Creator", fields: [createdBy], references: [id], map: "absence_creator_fk")
 
     // Inverse relation with Requested_Absence table 
     requestedAbsence RequestedAbsence? @relation("Parent_Absence")
@@ -81,7 +85,7 @@ model SpontaneousAbsence {
   // Relation with Absence
   parentAbsence Absence @relation("Spontaneous_Absence", fields: [absenceId], references: [dbId], map: "spontaneous_absence_fk")
 
-  // Relation with Absence_Status
+  // Relation with Spontaneous_Absence_Status
   status SpontaneousAbsenceStatus @relation("Spontaneous_Absence_Status", fields: [absenceStatus], references: [dbId], map: "spontaneous_absence_status_fk")
 
   // Relación inversa con Justification
