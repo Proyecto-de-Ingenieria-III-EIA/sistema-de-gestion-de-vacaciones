@@ -60,7 +60,6 @@ const requestedAbsenceResolvers = {
             `;
         },
     },
-
     WholeRequestedAbsence: {
         colaboratorId : async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
             return context.db.user.findFirst({

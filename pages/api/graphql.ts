@@ -23,6 +23,7 @@ export const schema = makeExecutableSchema({
 // In the apollo server we tell it what context it will have (the interface we made for the prisma client)
 const server = new ApolloServer<OurContext>({
     schema,
+    introspection: true,
 });
 
 // Here we give the embed the context in the server
@@ -48,6 +49,7 @@ export default startServerAndCreateNextHandler(server, {
             WHERE
                 s."sessionToken" = ${token}
         `;
+
         if (!authData[0])
             throw new FailedAuthError();
 
