@@ -1,18 +1,16 @@
+model SpontaneousAbsenceStatus {
+  dbId               String                             @id @default(cuid()) @map("db_id")
+  name               Enum_Spotaneus_Absence_Status_Name @map("name")
+  description        String                             @map("description")
+  createdAt          DateTime                           @default(now()) @map("created_at")
+  updatedAt          DateTime                           @updatedAt @map("updated_at")
+  spontaneousAbsence SpontaneousAbsence[]               @relation("Spontaneous_Absence_Status")
+
+  @@map("Spontaneous_Absence_Status")
+}
+
 enum Enum_Spotaneus_Absence_Status_Name {
   PENDING
   APROVED
   REJECTED
-}
-
-model SpontaneousAbsenceStatus {
-  dbId String @id() @default(cuid()) @map("db_id")
-  name Enum_Spotaneus_Absence_Status_Name @map("name")
-  description String @map("description")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relation with Requested_Absence
-  spontaneousAbsence SpontaneousAbsence[] @relation("Spontaneous_Absence_Status")
-
-  @@map("Spontaneous_Absence_Status")
 }

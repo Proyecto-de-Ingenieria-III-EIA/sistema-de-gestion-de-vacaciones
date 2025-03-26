@@ -1,45 +1,36 @@
-
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  role          Role?   @relation(fields: [roleId], references: [id])
-  roleId        String?
-  accounts      Account[]
-  sessions      Session[]
-
-  //Self relation for boss-employee
-  boss          User?      @relation("Employee_To_Manager", fields: [bossId], references: [id], map: "employee_to_manager_fk")
-  bossId        String?
-  subordinates  User[]    @relation("Employee_To_Manager")
-  //Opposite with absence
-  absences      Absence[] @relation("Absence_Colaborator")
-  //Opposite with absence
-  createdAbsences Absence[] @relation("Absence_Creator")
-  //Opposite with requested absence
+  id                String             @id @default(cuid())
+  name              String?
+  email             String             @unique
+  emailVerified     DateTime?
+  image             String?
+  roleId            String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  bossId            String?
+  absences          Absence[]          @relation("Absence_Colaborator")
+  createdAbsences   Absence[]          @relation("Absence_Creator")
+  accounts          Account[]
   requestedAbsences RequestedAbsence[] @relation("Requested_Absence_Aprover")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  sessions          Session[]
+  role              Role?              @relation(fields: [roleId], references: [id])
+  boss              User?              @relation("Employee_To_Manager", fields: [bossId], references: [id], map: "employee_to_manager_fk")
+  subordinates      User[]             @relation("Employee_To_Manager")
 
   @@map("User")
+}
+
+model Role {
+  id        String        @id @default(cuid()) @map("id")
+  name      Enum_RoleName @unique @map("name")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @default(now()) @updatedAt @map("updated_at")
+  users     User[]
+
+  @@map("Role")
 }
 
 enum Enum_RoleName {
   ADMIN
   USER
-}
-
-model Role {
-  id    String        @id @default(cuid()) @map("id")
-  name  Enum_RoleName @unique @map("name")
-
-  users User[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @default(now()) @map("updated_at")
-  
-  @@map("Role")
 }
