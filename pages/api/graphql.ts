@@ -37,7 +37,7 @@ export default startServerAndCreateNextHandler(server, {
                 expires: Date,
             }] = await prisma.$queryRaw`
             SELECT
-                u."id",
+                u."id" as "userId",
                 r."name" as "role",
                 s."expires" as "expiration_date"
             FROM

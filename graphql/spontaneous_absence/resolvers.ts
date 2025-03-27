@@ -1,6 +1,6 @@
 import { StatusNotFoundError } from "@/errors/StatusNotFoundError";
 import { OurContext } from "../context";
-import { Absence, SpontaneousAbsence, SpontaneousAbsenceStatus, Enum_Spotaneus_Absence_Status_Name } from "@prisma/client";
+import { User, Justification, Absence, SpontaneousAbsence, SpontaneousAbsenceStatus, Enum_Spotaneus_Absence_Status_Name } from "@prisma/client";
 
 interface SpontaneousAbsenceCreation {
     colaboratorId: string;
@@ -9,19 +9,32 @@ interface SpontaneousAbsenceCreation {
     comments: string;
 }
 
+interface CompleteSpontaneousAbsence {
+    dbId: string;
+    colaboratorId: string;
+    startDate: Date;
+    endDate: Date;
+    createdById: string;
+    comments: string;
+    absenceStatusId: string;
+
+    colaborator: User;
+    createdBy: User;
+    absenceStatus: SpontaneousAbsenceStatus;
+    justification: Justification;
+}
+
 const spontaneousAbsenceResolvers = {
     Mutation: {
         createSpontaneousAbsence: async (parent: null, 
-                            args: SpontaneousAbsenceCreation, 
+                            { inputs }: { inputs: SpontaneousAbsenceCreation },
                             context: OurContext) => {
-
-            // TODO: make this work
-            const result = await context.db.$transaction(async (tx) => {
+            return await context.db.$transaction(async (tx) => {
                 const absence = await tx.absence.create({
                     data: {
-                        colaboratorId: args.colaboratorId,
-                        startDate: args.startDate,
-                        endDate: args.endDate,
+                        colaboratorId: inputs.colaboratorId,
+                        startDate: new Date(inputs.startDate),
+                        endDate: new Date(inputs.endDate),
                         createdBy: context.authData.userId,
                         updatedAt: new Date(),
                     }
@@ -37,38 +50,58 @@ const spontaneousAbsenceResolvers = {
                     throw new StatusNotFoundError('Spontaneous Absence Status not found');
                 }
 
-                await tx.spontaneousAbsence.create({
+                const spontaneousAbsence = await tx.spontaneousAbsence.create({
                     data: {
                         absenceId: absence.dbId,
-                        comments: args.comments,
+                        comments: inputs.comments,
                         absenceStatus: spontaneousAbsenceStatus.dbId,
                         updatedAt: new Date(),
                     }
                 });
-            })
-            
-            console.log(result);
 
-            // return {
-            //     dbId: SpontaneousAbsence.dbId,
-            //     colaboratorId: SpontaneousAbsence.absenceId,
-            //     startDate: absence.startDate,
-            //     endDate: absence.endDate,
-            //     createdById: absence.createdBy,
-            //     comments: SpontaneousAbsence.comments,
-            //     absenceStatusId: SpontaneousAbsence.absenceStatus,
-            // }
+                return {
+                    dbId: absence.dbId,
+                    colaboratorId: absence.colaboratorId,
+                    startDate: absence.startDate,
+                    endDate: absence.endDate,
+                    createdById: absence.createdBy,
+                    comments: spontaneousAbsence.comments,
+                    absenceStatusId: spontaneousAbsence.absenceStatus,
+                }
+            });
         },
     },
-    Absence: {
-
-    },
-    SpontaneousAbsenceStatus: {
-
-    },
-    Justification: {
-
-    },
+    CompleteSpontaneousAbsence: {  
+        colaborator: (parent: CompleteSpontaneousAbsence, args: null, context: OurContext) => {
+            console.log(parent);
+            return context.db.user.findUnique({
+                where: {
+                    id: parent.colaboratorId,
+                }
+            });
+        },
+        createdBy: (parent: CompleteSpontaneousAbsence, args: null, context: OurContext) => {
+            return context.db.user.findUnique({
+                where: {
+                    id: parent.createdById,
+                }
+            });
+        },
+        absenceStatus: (parent: CompleteSpontaneousAbsence, args: null, context: OurContext) => {
+            return context.db.spontaneousAbsenceStatus.findUnique({
+                where: {
+                    dbId: parent.absenceStatusId,
+                }
+            });
+        },
+        justification: (parent: CompleteSpontaneousAbsence, args: null, context: OurContext) => {
+            return context.db.justification.findFirst({
+                where: {
+                    absenceId: parent.dbId,
+                }
+            });
+        },
+    }
 };
 
 export { spontaneousAbsenceResolvers };
