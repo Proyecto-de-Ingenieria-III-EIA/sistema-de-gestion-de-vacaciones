@@ -20,6 +20,14 @@ interface WholeRequestedAbsence {
     informalAbsence: InformalAbsence;
 }
 
+interface RequestedAbsenceCreationInput {
+    colaboratorId: string;
+    startDate: Date;
+    endDate: Date;
+    comments: string
+    isVacation: boolean;
+}
+
 const requestedAbsenceResolvers = {
     Query: {
         getAbsencesTimePeriod: async (parent: null, args: { startDate: string, endDate: string}, context: OurContext) => {
@@ -59,6 +67,35 @@ const requestedAbsenceResolvers = {
                     absence."start_date" <= ${endDate} AND absence."end_date" >= ${startDate}
             `;
         },
+        getPendingRequestedAbsences: async (parent: null, args: null, context: OurContext) => {
+            if (!context.authData || context.authData.role !== Enum_RoleName.ADMIN) {
+                throw new NotSufficentCredentialsError();
+            }
+
+            const today = new Date();
+
+            return await context.db.requestedAbsence.findMany({
+                where: {
+                    status: "PENDING",
+                    absence: {
+                        startDate: {
+                            gt: today
+                        }
+                    }
+                },
+                include: {
+                    absence: true,
+                },
+                orderBy: {
+                    createdAt: 'asc'  // Oldest to newest
+                }
+            });
+        }
+    },
+    Mutation: {
+        createRequestedAbsence: async (parent: null, { inputs }: { inputs: RequestedAbsenceCreationInput }, context: OurContext) => {
+            
+        }
     },
     WholeRequestedAbsence: {
         colaboratorId : async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
