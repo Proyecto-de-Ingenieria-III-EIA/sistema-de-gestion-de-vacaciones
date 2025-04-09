@@ -72,6 +72,7 @@ const requestedAbsenceResolvers = {
                     absence."start_date" <= ${endDate} AND absence."end_date" >= ${startDate}
             `;
         },
+        // TODO: test this
         getPendingRequestedAbsences: async (parent: null, args: null, context: OurContext) => {
             if (!context.authData || context.authData.role !== Enum_RoleName.ADMIN) {
                 throw new NotSufficentCredentialsError();
@@ -98,6 +99,7 @@ const requestedAbsenceResolvers = {
         }
     },
     Mutation: {
+        // TODO: test this
         createRequestedAbsence: async (parent: null, { inputs }: { inputs: RequestedAbsenceCreationInput }, context: OurContext) => {
             return await context.db.$transaction(async (tx) => {
                 const { bossId }: {bossId: string} = await tx.$queryRaw`
