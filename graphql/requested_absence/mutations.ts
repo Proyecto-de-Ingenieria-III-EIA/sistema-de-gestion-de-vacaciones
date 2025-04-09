@@ -5,13 +5,16 @@ const requestedAbsenceMutations = gql`
         colaboratorId: ID
         startDate: DateTime
         endDate: DateTime
-        comments: String
         isVacation: Boolean
+
+        description: String
+        mediaUrl: String
+        comments: String
     }
 
     type Mutation{
         # Place holder, so the API can run
-        createRequestedAbsence(inputs: RequestedAbsenceCreationInput): RequestedAbsence
+        createRequestedAbsence(inputs: RequestedAbsenceCreationInput): CompleteSpontaneousAbsence
     }
 `;
 

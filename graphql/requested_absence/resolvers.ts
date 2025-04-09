@@ -1,7 +1,9 @@
 import { OurContext } from "../context";
-import { RequestedAbsence, VacationAbsence, InformalAbsence, RequestStatus, User } from "@prisma/client";
+import { RequestedAbsence, VacationAbsence, InformalAbsence, RequestStatus, User, Enum_Requested_Absence_Status_Name } from "@prisma/client";
 import { NotSufficentCredentialsError } from "@/errors/NotSufficentCredentialsError";
 import { Enum_RoleName } from "@prisma/client";
+import { UserNotFoundError } from "@/errors/UserNotFoundError";
+import { StatusNotFoundError } from "@/errors/StatusNotFoundError";
 
 interface WholeRequestedAbsence {
     dbId: string;
@@ -24,8 +26,11 @@ interface RequestedAbsenceCreationInput {
     colaboratorId: string;
     startDate: Date;
     endDate: Date;
-    comments: string
     isVacation: boolean;
+
+    description?: string;
+    mediaUrl?: string;
+    comments?: string;
 }
 
 const requestedAbsenceResolvers = {
@@ -94,7 +99,106 @@ const requestedAbsenceResolvers = {
     },
     Mutation: {
         createRequestedAbsence: async (parent: null, { inputs }: { inputs: RequestedAbsenceCreationInput }, context: OurContext) => {
-            
+            return await context.db.$transaction(async (tx) => {
+                const { bossId }: {bossId: string} = await tx.$queryRaw`
+                    SELECT 
+                        u."boss_id" as "bossId"
+                    FROM
+                        User u
+                    WHERE
+                        u."id" = ${inputs.colaboratorId}
+                `;
+
+                console.log(bossId);
+
+                if (!bossId) {
+                    throw new UserNotFoundError("Colaborator or their boss not found");
+                }
+
+                const absence = await tx.absence.create({
+                    data: {
+                        colaboratorId: inputs.colaboratorId,
+                        startDate: new Date(inputs.startDate),
+                        endDate: new Date(inputs.endDate),
+                        createdBy: context.authData.userId,
+                        updatedAt: new Date(),
+                    }
+                });
+
+                const requestStatus = await tx.requestStatus.findFirst({
+                    where: {
+                        name: Enum_Requested_Absence_Status_Name.PENDING,
+                    }
+                });
+
+                if (!requestStatus) {
+                    throw new StatusNotFoundError('Request Status not found');
+                }
+
+                const requestedAbsence = await tx.requestedAbsence.create({
+                    data: {
+                        absenceId: absence.dbId,
+                        status: requestStatus.dbId,
+                        aprover: bossId,
+                        decisionDate: null,
+                        updatedAt: new Date(),
+                    }
+                });
+
+                if (inputs.isVacation) {
+                    const policy = await tx.vacationPolicy.findFirst({
+                        orderBy: {
+                            createdAt: 'desc', // Get the latest policy by date
+                        },
+                        take: 1 // Ensure only the top entry is retrieved
+                    });
+
+                    if (!policy) {
+                        throw new Error('There is no policy implemented yet');
+                    }
+
+                    tx.vacationAbsence.create({
+                        data: {
+                            absenceId: absence.dbId,
+                            policyUnder: policy.dbId,
+                            updatedAt: new Date(),
+                        }
+                    });
+                } else {
+                    if (!inputs.description || !inputs.mediaUrl || !inputs.comments) {
+                        throw new Error('Description, mediaUrl and comments are required for informal absence');
+                    }
+                    tx.informalAbsence.create({
+                        data: {
+                            absenceId: absence.dbId,
+                            updatedAt: new Date(),
+                        }
+                    });
+
+                    tx.justification.create({
+                        data: {
+                            absenceId: absence.dbId,
+                            description: inputs.description,
+                            media: inputs.mediaUrl,
+                            uploadedAt: new Date(),
+                            comments: inputs.comments,
+                            updatedAt: new Date(),
+                        }
+                    })
+                }
+                return {
+                    dbId: absence.dbId,
+                    colaboratorId: absence.colaboratorId,
+                    startDate: absence.startDate,
+                    endDate: absence.endDate,
+                    decisionDate: requestedAbsence.decisionDate,
+                    type: inputs.isVacation ? 'VACATION' : 'INFORMAL',
+                    status: requestStatus.name,
+                    aprover: requestedAbsence.aprover,
+                    createdAt: absence.createdAt,
+                    updatedAt: absence.updatedAt,
+                }
+            });
         }
     },
     WholeRequestedAbsence: {
