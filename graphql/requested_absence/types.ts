@@ -25,14 +25,14 @@ const requestedAbsenceTypes = gql`
 
   type WholeRequestedAbsence {
     dbId: ID
-    colaboratorId: User
     startDate: DateTime
     endDate: DateTime
     decisionDate: DateTime
-    type: RequestedAbsenceType
 
+    colaborator: User
     status: RequestStatus
     aprover: User
+    type: RequestedAbsenceType
 
     createdAt: DateTime
     updatedAt: DateTime

@@ -4,22 +4,21 @@ import { NotSufficentCredentialsError } from "@/errors/NotSufficentCredentialsEr
 import { Enum_RoleName } from "@prisma/client";
 import { UserNotFoundError } from "@/errors/UserNotFoundError";
 import { StatusNotFoundError } from "@/errors/StatusNotFoundError";
+import { Enum_Requested_Absence_Type } from "./enum_requested_absence_type";
 
 interface WholeRequestedAbsence {
     dbId: string;
-    colaboratorId: string;
     startDate: Date;
     endDate: Date;
     decisionDate: Date;
-
-    status: string;  // The status Id
-    aprover: User;
+    
+    colaboratorId: string;
+    statusId: string;
+    aproverId: string;
+    typeId: string;
 
     createdAt: Date;
     updatedAt: Date;
-
-    vacationAbsence: VacationAbsence;
-    informalAbsence: InformalAbsence;
 }
 
 interface RequestedAbsenceCreationInput {
@@ -46,23 +45,20 @@ const requestedAbsenceResolvers = {
             return await context.db.$queryRaw`
                 SELECT
                     absence."db_id" as "dbId",
-                    absence."colaborator_id" as "colaboratorId",
                     absence."start_date" as "startDate",
                     absence."end_date" as "endDate",
                     request."decision_date" as "decisionDate",
-                    request."status" as "status",
-                    request."aprover" as "aprover",
 
+                    absence."colaborator_id" as "colaboratorId",
+                    request."status" as "statusId",
+                    request."aprover" as "aproverId",
                     CASE vacation."absence_id"
-                        WHEN NULL THEN 'INFORMAL'
-                        ELSE 'VACATION'
+                        WHEN NULL THEN ${Enum_Requested_Absence_Type.INFORMAL}
+                        ELSE ${Enum_Requested_Absence_Type.VACATION}
                     END as "type",
 
                     absence."created_at" as "createdAt",
-                    absence."updated_at" as "updatedAt",
-
-                    absence."db_id" as "vacationAbsence",
-                    absence."db_id" as "informalAbsence"
+                    absence."updated_at" as "updatedAt"
                 FROM
                     "Requested_Absence" as request
                     INNER JOIN "Absence" as absence ON absence."db_id" = request."absence_id"
@@ -72,7 +68,6 @@ const requestedAbsenceResolvers = {
                     absence."start_date" <= ${endDate} AND absence."end_date" >= ${startDate}
             `;
         },
-        // TODO: test this
         getPendingRequestedAbsences: async (parent: null, args: null, context: OurContext) => {
             if (!context.authData || context.authData.role !== Enum_RoleName.ADMIN) {
                 throw new NotSufficentCredentialsError();
@@ -80,26 +75,49 @@ const requestedAbsenceResolvers = {
 
             const today = new Date();
 
-            return await context.db.requestedAbsence.findMany({
+            const statusId: { dbId: string } | null = await context.db.requestStatus.findFirst({
                 where: {
-                    status: "PENDING",
-                    absence: {
-                        startDate: {
-                            gt: today
-                        }
-                    }
+                    name: Enum_Requested_Absence_Status_Name.PENDING,
                 },
-                include: {
-                    absence: true,
+                select: {
+                    dbId: true,
                 },
-                orderBy: {
-                    createdAt: 'asc'  // Oldest to newest
-                }
             });
+
+            if (!statusId) {
+                throw new StatusNotFoundError('Request Status not found');
+            }
+
+            return await context.db.$queryRaw`
+                SELECT
+                    absence."db_id" as "dbId",
+                    absence."start_date" as "startDate",
+                    absence."end_date" as "endDate",
+                    request."decision_date" as "decisionDate",
+
+                    absence."colaborator_id" as "colaboratorId",
+                    request."status" as "statusId",
+                    request."aprover" as "aproverId",
+                    CASE vacation."absence_id"
+                        WHEN NULL THEN ${Enum_Requested_Absence_Type.INFORMAL}
+                        ELSE ${Enum_Requested_Absence_Type.VACATION}
+                    END as "type",
+
+                    absence."created_at" as "createdAt",
+                    absence."updated_at" as "updatedAt"
+                FROM
+                    "Requested_Absence" as request
+                    INNER JOIN "Absence" as absence ON absence."db_id" = request."absence_id"
+                    LEFT JOIN "Vacation_Absence" as vacation ON vacation."absence_id" = absence."db_id"
+                WHERE
+                    request.status = ${statusId.dbId}
+                    AND absence.start_date >=  ${today}
+                ORDER BY
+                    absence.start_date ASC
+            `;
         }
     },
     Mutation: {
-        // TODO: test this
         createRequestedAbsence: async (parent: null, { inputs }: { inputs: RequestedAbsenceCreationInput }, context: OurContext) => {
             return await context.db.$transaction(async (tx) => {
                 const bossId: [{ bossId: string }] = await tx.$queryRaw<[{ bossId: string }]>`
@@ -202,14 +220,7 @@ const requestedAbsenceResolvers = {
         }
     },
     WholeRequestedAbsence: {
-        colaboratorId : async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
-            return context.db.user.findFirst({
-                where: {
-                    id: parent.colaboratorId,
-                }
-            });
-        },
-        aprover : async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
+        colaborator : async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
             return context.db.user.findFirst({
                 where: {
                     id: parent.colaboratorId,
@@ -219,10 +230,17 @@ const requestedAbsenceResolvers = {
         status: async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
             return context.db.requestStatus.findFirst({
                 where: {
-                    dbId: parent.status,
+                    dbId: parent.statusId,
                 },
             });
-        }
+        },
+        aprover : async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
+            return context.db.user.findFirst({
+                where: {
+                    id: parent.aproverId,
+                }
+            });
+        },
     }
 };
 
