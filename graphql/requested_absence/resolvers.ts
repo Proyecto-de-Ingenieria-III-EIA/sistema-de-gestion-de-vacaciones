@@ -102,18 +102,16 @@ const requestedAbsenceResolvers = {
         // TODO: test this
         createRequestedAbsence: async (parent: null, { inputs }: { inputs: RequestedAbsenceCreationInput }, context: OurContext) => {
             return await context.db.$transaction(async (tx) => {
-                const { bossId }: {bossId: string} = await tx.$queryRaw`
+                const bossId: [{ bossId: string }] = await tx.$queryRaw<[{ bossId: string }]>`
                     SELECT 
-                        u."boss_id" as "bossId"
+                        u."bossId" as "bossId"
                     FROM
-                        User u
-                    WHERE
+                        "User" u
+                    WHERE   
                         u."id" = ${inputs.colaboratorId}
                 `;
 
-                console.log(bossId);
-
-                if (!bossId) {
+                if (bossId.length !== 1|| !bossId[0].bossId) {
                     throw new UserNotFoundError("Colaborator or their boss not found");
                 }
 
@@ -141,12 +139,12 @@ const requestedAbsenceResolvers = {
                     data: {
                         absenceId: absence.dbId,
                         status: requestStatus.dbId,
-                        aprover: bossId,
+                        aprover: bossId[0].bossId,
                         decisionDate: null,
                         updatedAt: new Date(),
                     }
                 });
-
+                
                 if (inputs.isVacation) {
                     const policy = await tx.vacationPolicy.findFirst({
                         orderBy: {
@@ -159,7 +157,7 @@ const requestedAbsenceResolvers = {
                         throw new Error('There is no policy implemented yet');
                     }
 
-                    tx.vacationAbsence.create({
+                    await tx.vacationAbsence.create({
                         data: {
                             absenceId: absence.dbId,
                             policyUnder: policy.dbId,
@@ -170,14 +168,14 @@ const requestedAbsenceResolvers = {
                     if (!inputs.description || !inputs.mediaUrl || !inputs.comments) {
                         throw new Error('Description, mediaUrl and comments are required for informal absence');
                     }
-                    tx.informalAbsence.create({
+                    await tx.informalAbsence.create({
                         data: {
                             absenceId: absence.dbId,
                             updatedAt: new Date(),
                         }
                     });
 
-                    tx.justification.create({
+                    await tx.justification.create({
                         data: {
                             absenceId: absence.dbId,
                             description: inputs.description,

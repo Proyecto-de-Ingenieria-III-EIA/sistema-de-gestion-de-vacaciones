@@ -6,6 +6,7 @@ import { Enum_RoleName, PrismaClient } from '@prisma/client';
 import { OurContext } from '@/graphql/context';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { FailedAuthError } from '@/errors/FailedAuthError';
+import { CustomErrorInterface } from '@/errors/CustomErrorInterface';
 
 const prisma = new PrismaClient();
 
@@ -24,6 +25,14 @@ export const schema = makeExecutableSchema({
 const server = new ApolloServer<OurContext>({
     schema,
     introspection: true,
+    formatError: (err) => {
+        console.error(err); // Log full error for debugging
+        return {
+        message: err.message,
+        code: err.extensions?.code || 'INTERNAL_SERVER_ERROR',
+        statusCode: err.extensions?.statusCode || 500,
+        };
+    }
 });
 
 // Here we give the embed the context in the server

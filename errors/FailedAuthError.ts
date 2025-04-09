@@ -1,13 +1,9 @@
-import { CustomErrorInterface } from "./CustomErrorInterface";
+import { ApolloError } from "apollo-server";
 
 
-export class FailedAuthError extends Error implements CustomErrorInterface {
-    statusCode: number;
-
+export class FailedAuthError extends ApolloError {
     constructor(message = "Authentication failed: Invalid or expired session token") {
-        super(message);
-        this.name = "Failed Auth Error";
-        this.statusCode = 401;
+        super(message, "FAILED_AUTH_ERROR", { statusCode: 401 });
         
         // This is needed to maintain proper stack traces
         Object.setPrototypeOf(this, FailedAuthError.prototype);

@@ -1,12 +1,8 @@
-import { CustomErrorInterface } from "./CustomErrorInterface";
+import { ApolloError } from "apollo-server";
 
-export class RoleNameError extends Error implements CustomErrorInterface {
-    statusCode: number;
-
+export class RoleNameError extends ApolloError {
     constructor(message = "Invalid Role Name") {
-        super(message);
-        this.name = "Invalid Role Name Error";
-        this.statusCode = 400;
+        super(message, "INVALID_ROLE_NAME_ERROR", { statusCode: 400 });
         
         // This is needed to maintain proper stack traces
         Object.setPrototypeOf(this, RoleNameError.prototype);

@@ -1,13 +1,9 @@
-import { CustomErrorInterface } from "./CustomErrorInterface";
+import { ApolloError } from "apollo-server";
 
 
-export class NotSufficentCredentialsError extends Error implements CustomErrorInterface {
-    statusCode: number;
-
+export class NotSufficentCredentialsError extends ApolloError {
     constructor(message = "You do not have the credentials to make this operation") {
-        super(message);
-        this.name = "Not Enough Credentials Error";
-        this.statusCode = 403;
+        super(message, "NOT_SUFFICIENT_CREDENTIALS_ERROR", { statusCode: 403 });
         
         // This is needed to maintain proper stack traces
         Object.setPrototypeOf(this, NotSufficentCredentialsError.prototype);

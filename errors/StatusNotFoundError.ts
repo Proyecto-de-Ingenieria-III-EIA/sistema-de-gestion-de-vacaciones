@@ -1,12 +1,8 @@
-import { CustomErrorInterface } from "./CustomErrorInterface";
+import { ApolloError } from "apollo-server";
 
-export class StatusNotFoundError extends Error implements CustomErrorInterface {
-    statusCode: number;
-
+export class StatusNotFoundError extends ApolloError {
     constructor(message = "Spontaneous Absence Status not found") {
-        super(message);
-        this.name = "Status Not Found Error";
-        this.statusCode = 404;
+        super(message, "STATUS_NOT_FOUND_ERROR", { statusCode: 404 });
         
         // This is needed to maintain proper stack traces
         Object.setPrototypeOf(this, StatusNotFoundError.prototype);
