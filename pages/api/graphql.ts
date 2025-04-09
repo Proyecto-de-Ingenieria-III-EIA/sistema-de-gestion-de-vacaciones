@@ -28,7 +28,7 @@ const server = new ApolloServer<OurContext>({
     formatError: (err) => {
         console.error(err); // Log full error for debugging
         return {
-        message: err.message,
+        message: (err.extensions === undefined) ? err.message : 'Internal server error',
         code: err.extensions?.code || 'INTERNAL_SERVER_ERROR',
         statusCode: err.extensions?.statusCode || 500,
         };

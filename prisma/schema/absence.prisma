@@ -10,6 +10,7 @@ model Absence {
   creator            User                @relation("Absence_Creator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "absence_creator_fk")
   requestedAbsence   RequestedAbsence?   @relation("Parent_Absence")
   spontaneousAbsence SpontaneousAbsence? @relation("Spontaneous_Absence")
+  justification      Justification?      @relation("Absence_Justification")
 
   @@map("Absence")
 }
@@ -46,7 +47,6 @@ model InformalAbsence {
   createdAt        DateTime         @default(now()) @map("created_at")
   updatedAt        DateTime         @updatedAt @map("updated_at")
   requestedAbsence RequestedAbsence @relation("Informal_Absence", fields: [absenceId], references: [absenceId], map: "informal_absence_fk")
-  justification    Justification?   @relation("Informal_Absence_Justification")
 
   @@map("Informal_Absence")
 }
@@ -57,7 +57,6 @@ model SpontaneousAbsence {
   createdAt     DateTime                 @default(now()) @map("created_at")
   updatedAt     DateTime                 @updatedAt @map("updated_at")
   absenceStatus String                   @map("absence_status")
-  justification Justification?           @relation("Informal_Absence_Justification")
   parentAbsence Absence                  @relation("Spontaneous_Absence", fields: [absenceId], references: [dbId], map: "spontaneous_absence_fk")
   status        SpontaneousAbsenceStatus @relation("Spontaneous_Absence_Status", fields: [absenceStatus], references: [dbId], map: "spontaneous_absence_status_fk")
 
@@ -65,15 +64,14 @@ model SpontaneousAbsence {
 }
 
 model Justification {
-  absenceId       String                @id @map("absence_id")
-  description     String                @map("description")
-  media           Json?                 @map("media")
-  uploadedAt      DateTime              @map("uploaded_at")
-  comments        String?               @map("comments")
-  createdAt       DateTime              @default(now()) @map("created_at")
-  updatedAt       DateTime              @updatedAt
-  informalAbsence InformalAbsence       @relation("Informal_Absence_Justification", fields: [absenceId], references: [absenceId], map: "informal_absence_justification_fk")
-  spontaneousAbsence SpontaneousAbsence @relation("Informal_Absence_Justification", fields: [absenceId], references: [absenceId], map: "spontaneous_absence_justification_fk")
+  absenceId          String        @id @map("absence_id")
+  description        String        @map("description")
+  media              Json?         @map("media")
+  uploadedAt         DateTime      @map("uploaded_at")
+  comments           String?       @map("comments")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt
+  absence    Absence       @relation("Absence_Justification", fields: [absenceId], references: [dbId], map: "absence_justification_fk")
 
   @@map("Justification")
 }
