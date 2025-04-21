@@ -33,6 +33,7 @@ const requestedAbsenceTypes = gql`
     status: RequestStatus
     aprover: User
     type: RequestedAbsenceType
+    justification: Justification
 
     createdAt: DateTime
     updatedAt: DateTime

@@ -4,7 +4,7 @@ import { NotSufficentCredentialsError } from "@/errors/NotSufficentCredentialsEr
 import { Enum_RoleName } from "@prisma/client";
 import { UserNotFoundError } from "@/errors/UserNotFoundError";
 import { StatusNotFoundError } from "@/errors/StatusNotFoundError";
-import { Enum_Requested_Absence_Type } from "./enum_requested_absence_type";
+import { Enum_Absence_Type } from "./../absence/enum_absence_type";
 
 interface WholeRequestedAbsence {
     dbId: string;
@@ -34,40 +34,6 @@ interface RequestedAbsenceCreationInput {
 
 const requestedAbsenceResolvers = {
     Query: {
-        getAbsencesTimePeriod: async (parent: null, args: { startDate: string, endDate: string}, context: OurContext) => {
-            if (!context.authData || context.authData.role !== Enum_RoleName.ADMIN) {
-                throw new NotSufficentCredentialsError();
-            }
-
-            const startDate = new Date(args.startDate);
-            const endDate = new Date(args.endDate);
-
-            return await context.db.$queryRaw`
-                SELECT
-                    absence."db_id" as "dbId",
-                    absence."start_date" as "startDate",
-                    absence."end_date" as "endDate",
-                    request."decision_date" as "decisionDate",
-
-                    absence."colaborator_id" as "colaboratorId",
-                    request."status" as "statusId",
-                    request."aprover" as "aproverId",
-                    CASE vacation."absence_id"
-                        WHEN NULL THEN ${Enum_Requested_Absence_Type.INFORMAL}
-                        ELSE ${Enum_Requested_Absence_Type.VACATION}
-                    END as "type",
-
-                    absence."created_at" as "createdAt",
-                    absence."updated_at" as "updatedAt"
-                FROM
-                    "Requested_Absence" as request
-                    INNER JOIN "Absence" as absence ON absence."db_id" = request."absence_id"
-                    LEFT JOIN "Vacation_Absence" as vacation ON vacation."absence_id" = absence."db_id"
-                
-                WHERE
-                    absence."start_date" <= ${endDate} AND absence."end_date" >= ${startDate}
-            `;
-        },
         getPendingRequestedAbsences: async (parent: null, args: null, context: OurContext) => {
             if (!context.authData || context.authData.role !== Enum_RoleName.ADMIN) {
                 throw new NotSufficentCredentialsError();
@@ -99,8 +65,8 @@ const requestedAbsenceResolvers = {
                     request."status" as "statusId",
                     request."aprover" as "aproverId",
                     CASE vacation."absence_id"
-                        WHEN NULL THEN ${Enum_Requested_Absence_Type.INFORMAL}
-                        ELSE ${Enum_Requested_Absence_Type.VACATION}
+                        WHEN NULL THEN ${Enum_Absence_Type.INFORMAL}
+                        ELSE ${Enum_Absence_Type.VACATION}
                     END as "type",
 
                     absence."created_at" as "createdAt",
@@ -242,6 +208,9 @@ const requestedAbsenceResolvers = {
                 }
             });
         },
+        justification: async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
+            // TODO: add justification resolver for the informal absences
+        }
     }
 };
 

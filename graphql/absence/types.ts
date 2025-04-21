@@ -16,6 +16,24 @@ const absenceTypes = gql`
         requestedAbsence: RequestedAbsence
         spontaneousAbsence: SpontaneousAbsence
     }
+
+    union AbsenceStatus = RequestStatus | SpontaneousAbsenceStatus
+
+    type CompleteAbsence {
+        dbId: ID
+        startDate: DateTime
+        endDate: DateTime
+        decisionDate: DateTime
+
+        colaborator: User
+        status: AbsenceStatus
+        aprover: User
+        type: RequestedAbsenceType
+        justification: Justification
+
+        createdAt: DateTime
+        updatedAt: DateTime
+    }
 `;
 
 export { absenceTypes };
