@@ -27,7 +27,7 @@ const requestedAbsenceTypes = gql`
     colaborator: User
     status: RequestStatus
     reviewer: User
-    type: RequestedAbsenceType
+    type: AbsenceType
     justification: Justification
 
     createdAt: DateTime

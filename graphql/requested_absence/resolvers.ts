@@ -201,7 +201,7 @@ const requestedAbsenceResolvers = {
                 },
             });
         },
-        reviwer : async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
+        reviewer : async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
             return context.db.user.findFirst({
                 where: {
                     id: parent.reviewerId,
