@@ -39,7 +39,7 @@ const absenceResolvers = {
                     absence."colaborator_id" as "colaboratorId",
 
                     CASE
-                        WHEN spontaneous."absence_id" IS NULL THEN spontaneous."status"
+                        WHEN spontaneous."absence_id" IS NULL THEN spontaneous."absence_status"
                         ELSE request."status"
                     END as "statusId",
 
@@ -60,8 +60,8 @@ const absenceResolvers = {
                     absence."updated_at" as "updatedAt"
                 FROM
                     "Absence" as absence
-                    INNER JOIN "Requested_Absence" as request ON absence."db_id" = request."absence_id"
-                    INNER JOIN "Spontaneous_Absence" as spontaneous ON spontaneous."absence_id" = absence."db_id"
+                    LEFT JOIN "Requested_Absence" as request ON absence."db_id" = request."absence_id"
+                    LEFT JOIN "Spontaneous_Absence" as spontaneous ON spontaneous."absence_id" = absence."db_id"
                     LEFT JOIN "Vacation_Absence" as vacation ON vacation."absence_id" = absence."db_id"
 
                 

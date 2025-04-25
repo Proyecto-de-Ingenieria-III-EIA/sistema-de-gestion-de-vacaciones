@@ -78,7 +78,7 @@ const requestedAbsenceResolvers = {
                 WHERE
                     request.status = ${statusId.dbId}
                     AND absence.start_date >=  ${today}
-                    AND request.aprover = ${context.authData.userId}
+                    AND absence.reviewer = ${context.authData.userId}
                 ORDER BY
                     absence.start_date ASC
             `;
