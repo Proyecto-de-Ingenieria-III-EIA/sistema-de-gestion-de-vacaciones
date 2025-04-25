@@ -1,6 +1,12 @@
 import gql from "graphql-tag";
 
 const absenceTypes = gql`
+    enum AbsenceType {
+        VACATION
+        INFORMAL
+        SPONTANEOUS
+    }
+
     type Absence {
         dbId: ID
         colaboratorId: ID
@@ -27,8 +33,8 @@ const absenceTypes = gql`
 
         colaborator: User
         status: AbsenceStatus
-        aprover: User
-        type: RequestedAbsenceType
+        reviewer: User
+        type: AbsenceType
         justification: Justification
 
         createdAt: DateTime

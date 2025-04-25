@@ -1,21 +1,21 @@
 model User {
-  id                String             @id @default(cuid())
-  name              String?
-  email             String             @unique
-  emailVerified     DateTime?
-  image             String?
-  roleId            String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  bossId            String?
-  absences          Absence[]          @relation("Absence_Colaborator")
-  createdAbsences   Absence[]          @relation("Absence_Creator")
-  accounts          Account[]
-  requestedAbsences RequestedAbsence[] @relation("Requested_Absence_Aprover")
-  sessions          Session[]
-  role              Role?              @relation(fields: [roleId], references: [id])
-  boss              User?              @relation("Employee_To_Manager", fields: [bossId], references: [id], map: "employee_to_manager_fk")
-  subordinates      User[]             @relation("Employee_To_Manager")
+  id               String    @id @default(cuid())
+  name             String?
+  email            String    @unique
+  emailVerified    DateTime?
+  image            String?
+  roleId           String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  bossId           String?
+  absences         Absence[] @relation("Absence_Colaborator")
+  createdAbsences  Absence[] @relation("Absence_Creator")
+  absencesReviewed Absence[] @relation("Absence_Reviewer")
+  accounts         Account[]
+  sessions         Session[]
+  role             Role?     @relation(fields: [roleId], references: [id])
+  boss             User?     @relation("Employee_To_Manager", fields: [bossId], references: [id], map: "employee_to_manager_fk")
+  subordinates     User[]    @relation("Employee_To_Manager")
 
   @@map("User")
 }

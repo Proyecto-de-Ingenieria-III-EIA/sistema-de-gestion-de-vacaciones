@@ -14,8 +14,8 @@ interface WholeRequestedAbsence {
     
     colaboratorId: string;
     statusId: string;
-    aproverId: string;
-    typeId: string;
+    reviewerId: string;
+    type: Enum_Absence_Type;
 
     createdAt: Date;
     updatedAt: Date;
@@ -63,7 +63,7 @@ const requestedAbsenceResolvers = {
 
                     absence."colaborator_id" as "colaboratorId",
                     request."status" as "statusId",
-                    request."aprover" as "aproverId",
+                    absence."reviewer" as "reviewerId",
                     CASE vacation."absence_id"
                         WHEN NULL THEN ${Enum_Absence_Type.INFORMAL}
                         ELSE ${Enum_Absence_Type.VACATION}
@@ -105,6 +105,7 @@ const requestedAbsenceResolvers = {
                         colaboratorId: inputs.colaboratorId,
                         startDate: new Date(inputs.startDate),
                         endDate: new Date(inputs.endDate),
+                        reviewer: bossId[0].bossId,
                         createdBy: context.authData.userId,
                         updatedAt: new Date(),
                     }
@@ -124,7 +125,6 @@ const requestedAbsenceResolvers = {
                     data: {
                         absenceId: absence.dbId,
                         status: requestStatus.dbId,
-                        aprover: bossId[0].bossId,
                         decisionDate: null,
                         updatedAt: new Date(),
                     }
@@ -179,7 +179,7 @@ const requestedAbsenceResolvers = {
                     decisionDate: requestedAbsence.decisionDate,
                     type: inputs.isVacation ? 'VACATION' : 'INFORMAL',
                     status: requestStatus.name,
-                    aprover: requestedAbsence.aprover,
+                    aprover: absence.reviewer,
                     createdAt: absence.createdAt,
                     updatedAt: absence.updatedAt,
                 }
@@ -201,15 +201,20 @@ const requestedAbsenceResolvers = {
                 },
             });
         },
-        aprover : async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
+        reviwer : async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
             return context.db.user.findFirst({
                 where: {
-                    id: parent.aproverId,
+                    id: parent.reviewerId,
                 }
             });
         },
         justification: async (parent: WholeRequestedAbsence, args: null, context: OurContext) => {
-            // TODO: add justification resolver for the informal absences
+            return (parent.type !== Enum_Absence_Type.SPONTANEOUS) ? null : 
+                context.db.justification.findFirst({
+                    where: {
+                        absenceId: parent.dbId,
+                    }
+                });
         }
     }
 };
