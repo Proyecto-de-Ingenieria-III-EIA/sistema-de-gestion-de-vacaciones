@@ -19,7 +19,7 @@ model Absence {
 
 model RequestedAbsence {
   absenceId       String           @id @default(cuid()) @map("absence_id")
-  status          String           @map("status")
+  status          String           @map("status") @default("asdkhqi97udba89d") // this is the value of the PENDING entry for the status table
   decisionDate    DateTime?        @map("decision_date")
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
@@ -56,7 +56,7 @@ model SpontaneousAbsence {
   comments      String                   @map("comments")
   createdAt     DateTime                 @default(now()) @map("created_at")
   updatedAt     DateTime                 @updatedAt @map("updated_at")
-  status        String                   @map("status")
+  status        String                   @map("status") @default("1231312312") // this is the value of the PENDING entry for the status table
   parentAbsence Absence                  @relation("Spontaneous_Absence", fields: [absenceId], references: [dbId], map: "spontaneous_absence_fk")
   absenceStatus SpontaneousAbsenceStatus @relation("Spontaneous_Absence_Status", fields: [status], references: [dbId], map: "spontaneous_absence_status_fk")
 
