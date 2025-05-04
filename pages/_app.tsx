@@ -7,8 +7,7 @@ import { useRouter } from 'next/router';
 import '@/styles/globals.css';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { SessionProvider } from 'next-auth/react';
-import Header from '@/components/shared/Header/header';
-import Footer from '@/components/shared/Footer/footer';
+
 
 const AppWrapper = ({ Component, pageProps }: AppProps) => {
   const router = useRouter();
@@ -24,9 +23,7 @@ const AppWrapper = ({ Component, pageProps }: AppProps) => {
       return (
         <SessionProvider>
           <PrivateLayout>
-            <Header />
             <Component {...pageProps} />
-            <Footer />
           </PrivateLayout>
         </SessionProvider>
       );
