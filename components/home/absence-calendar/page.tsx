@@ -1,38 +1,39 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { format, addMonths, subMonths } from "date-fns"
+import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns"
 import { es } from "date-fns/locale"
 import { ChevronLeft, ChevronRight, Users } from "lucide-react"
+import { useQuery } from "@apollo/client"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { AbsenceGrid } from "./absence-grid"
 import { AbsenceLegend } from "./absence-legend"
-import { getAbsencesForMonth, getCollaboratorById, type Absence } from "@/lib/mock-data"
+import { GET_ABSENCES_TIME_PERIOD, type GetAbsencesResponse } from "@/graphql/requested_absence/prueba_simon"
 
 export default function AbsenceCalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [absences, setAbsences] = useState<Absence[]>([])
-  const [loading, setLoading] = useState(true)
 
-  const year = currentDate.getFullYear()
-  const month = currentDate.getMonth()
+  // Calcular el primer y último día del mes actual
+  const firstDayOfMonth = startOfMonth(currentDate)
+  const lastDayOfMonth = endOfMonth(currentDate)
 
+  // Consulta GraphQL para obtener las ausencias del mes actual
+  const { data, loading, error, refetch } = useQuery<GetAbsencesResponse>(GET_ABSENCES_TIME_PERIOD, {
+    variables: {
+      startDate: firstDayOfMonth.toISOString(),
+      endDate: lastDayOfMonth.toISOString(),
+    },
+    fetchPolicy: "network-only", // Asegura que siempre obtenemos datos frescos al cambiar de mes
+  })
+
+  // Actualizar la consulta cuando cambia el mes
   useEffect(() => {
-    const fetchAbsences = async () => {
-      setLoading(true)
-      try {
-        const data = await getAbsencesForMonth(year, month)
-        setAbsences(data)
-      } catch (error) {
-        console.error("Error fetching absences:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchAbsences()
-  }, [year, month])
+    refetch({
+      startDate: firstDayOfMonth.toISOString(),
+      endDate: lastDayOfMonth.toISOString(),
+    })
+  }, [currentDate, refetch, firstDayOfMonth, lastDayOfMonth])
 
   const goToPreviousMonth = () => {
     setCurrentDate((prevDate) => subMonths(prevDate, 1))
@@ -43,27 +44,32 @@ export default function AbsenceCalendarPage() {
   }
 
   // Procesar datos de ausencias para agrupar por colaborador
-  const collaboratorsWithAbsences = absences.reduce(
-    (acc, absence) => {
-      const collaborator = getCollaboratorById(absence.collaboratorId)
-      if (!collaborator) return acc
+  const absences = data?.getAbsencesTimePeriod || []
 
-      if (!acc[absence.collaboratorId]) {
-        acc[absence.collaboratorId] = {
-          id: collaborator.id,
-          name: collaborator.name,
-          department: collaborator.department,
-          absences: [],
-        }
-      }
+  // Agrupar ausencias por colaborador
+  const collaboratorsMap = new Map()
 
-      acc[absence.collaboratorId].absences.push(absence)
-      return acc
-    },
-    {} as Record<string, { id: string; name: string; department: string; absences: Absence[] }>,
-  )
+  absences.forEach((absence) => {
+    const collaboratorId = absence.colaborator.id
 
-  const collaboratorsList = Object.values(collaboratorsWithAbsences)
+    if (!collaboratorsMap.has(collaboratorId)) {
+      collaboratorsMap.set(collaboratorId, {
+        id: collaboratorId,
+        name: absence.colaborator.name,
+        department: "", // La API no proporciona departamento, podríamos añadirlo en el futuro
+        absences: [],
+      })
+    }
+
+    collaboratorsMap.get(collaboratorId).absences.push({
+      id: `${absence.colaborator.id}-${absence.startDate}`, // Generamos un ID único
+      startDate: absence.startDate,
+      endDate: absence.endDate,
+      type: absence.type,
+    })
+  })
+
+  const collaboratorsList = Array.from(collaboratorsMap.values())
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -109,6 +115,10 @@ export default function AbsenceCalendarPage() {
         {loading ? (
           <div className="flex justify-center py-8">
             <p>Cargando ausencias...</p>
+          </div>
+        ) : error ? (
+          <div className="bg-destructive/10 p-4 rounded-lg">
+            <p className="text-destructive">Error al cargar las ausencias: {error.message}</p>
           </div>
         ) : collaboratorsList.length === 0 ? (
           <div className="bg-muted p-8 rounded-lg text-center">

@@ -8,12 +8,20 @@ export function ApolloProvider({ children }: { children: ReactNode }) {
   const client = useMemo(() => {
     // Nota: Las variables de entorno en el cliente deben comenzar con NEXT_PUBLIC_
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "/api/graphql"
+    
+    // Obtener el token de sesión (puedes ajustar esto según cómo almacenes tu token)
+    const sessionToken = typeof window !== 'undefined' 
+      ? localStorage.getItem('session-token') || sessionStorage.getItem('session-token') 
+      : null;
 
     return new ApolloClient({
       link: new HttpLink({
         uri: backendUrl,
-        // Puedes agregar headers adicionales si es necesario
-        // headers: { ... }
+        headers: {
+          // Añadir el header session-token
+          'session-token': sessionToken || '45eaded6-d06c-492c-a3b5-3c7ea55a7983',
+          // Agregar más headers si es necesario
+        }
       }),
       cache: new InMemoryCache(),
       defaultOptions: {

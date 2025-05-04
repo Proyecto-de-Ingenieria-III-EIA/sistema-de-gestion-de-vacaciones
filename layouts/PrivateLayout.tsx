@@ -1,5 +1,7 @@
 import { AppSidebar } from '@/components/atomic-design/organisms/app-sidebar';
+import { ThemeProvider } from '@/components/home/theme-provider/theme-provider';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { ApolloProvider } from '@/lib/apollo-provider';
 import { signIn, useSession } from 'next-auth/react';
 
 const PrivateLayout = ({ children }: { children: React.ReactNode }) => {
@@ -16,9 +18,13 @@ const PrivateLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
       <AppSidebar />
+      <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
       <main className='flex-1 overflow-auto'>
-        <div className='container'>{children}</div>
+        <div className='container'>
+          <ApolloProvider>{children}</ApolloProvider>
+          </div>
       </main>
+      </ThemeProvider>
     </SidebarProvider>
   );
 };

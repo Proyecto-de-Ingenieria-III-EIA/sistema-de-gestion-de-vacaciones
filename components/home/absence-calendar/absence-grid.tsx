@@ -2,12 +2,18 @@
 
 import { getDaysInMonth, startOfMonth, isWithinInterval, parseISO } from "date-fns"
 import { cn } from "@/lib/utils"
-import type { Absence } from "@/lib/mock-data"
+
+type Absence = {
+  id: string
+  startDate: string
+  endDate: string
+  type: "VACATION" | "SPONTANEOUS" | "INFORMAL"
+}
 
 type CollaboratorWithAbsences = {
   id: string
   name: string
-  department: string
+  department?: string
   absences: Absence[]
 }
 
@@ -82,7 +88,9 @@ export function AbsenceGrid({ collaborators, currentDate }: AbsenceGridProps) {
               <td className="p-3 border-r sticky left-0 bg-background z-10">
                 <div>
                   <div className="font-medium">{collaborator.name}</div>
-                  <div className="text-xs text-muted-foreground">{collaborator.department}</div>
+                  {collaborator.department && (
+                    <div className="text-xs text-muted-foreground">{collaborator.department}</div>
+                  )}
                 </div>
               </td>
               {days.map((day) => {
@@ -91,7 +99,7 @@ export function AbsenceGrid({ collaborators, currentDate }: AbsenceGridProps) {
                   <td
                     key={day}
                     className={cn("p-2 border-r last:border-r-0", absence ? getAbsenceColor(absence.type) : "")}
-                    title={absence ? `${getAbsenceTypeText(absence.type)}: ${absence.reason || ""}` : ""}
+                    title={absence ? `${getAbsenceTypeText(absence.type)}` : ""}
                   >
                     {absence && <div className="w-full h-full" />}
                   </td>
