@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { AbsenceGrid } from "./absence-grid"
 import { AbsenceLegend } from "./absence-legend"
-import { GET_ABSENCES_TIME_PERIOD, type GetAbsencesResponse } from "@/graphql/requested_absence/prueba_simon"
+import { GET_ABSENCES_TIME_PERIOD, type GetAbsencesResponse } from "@/graphql/absence/prueba_simon"
 
 export default function AbsenceCalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
