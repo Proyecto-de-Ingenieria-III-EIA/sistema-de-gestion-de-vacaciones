@@ -53,7 +53,7 @@ model InformalAbsence {
 
 model SpontaneousAbsence {
   absenceId     String                   @id @map("absence_id")
-  comments      String                   @map("comments")
+  comments      String?                  @map("comments")
   createdAt     DateTime                 @default(now()) @map("created_at")
   updatedAt     DateTime                 @updatedAt @map("updated_at")
   status        String                   @map("status") @default("1231312312")  // this is the value of the PENDING entry for the status table
