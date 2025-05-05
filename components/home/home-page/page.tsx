@@ -16,7 +16,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Link href="/absence-calendar" className="block">
+            <Link href="/calendar" className="block">
               <Card className="h-full transition-all hover:shadow-md">
                 <CardHeader>
                   <Calendar className="h-8 w-8 mb-2 text-primary" />
@@ -37,7 +37,7 @@ export default function HomePage() {
               </Card>
             </Link>
 
-            <Link href="/request-absence" className="block">
+            <Link href="/request-abs-page" className="block">
               <Card className="h-full transition-all hover:shadow-md">
                 <CardHeader>
                   <Briefcase className="h-8 w-8 mb-2 text-primary" />
