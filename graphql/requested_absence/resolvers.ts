@@ -5,6 +5,7 @@ import { Enum_RoleName } from "@prisma/client";
 import { UserNotFoundError } from "@/errors/UserNotFoundError";
 import { StatusNotFoundError } from "@/errors/StatusNotFoundError";
 import { Enum_Absence_Type } from "./../absence/enum_absence_type";
+import { DateError } from "@/errors/DateError";
 
 interface WholeRequestedAbsence {
     dbId: string;
@@ -99,11 +100,18 @@ const requestedAbsenceResolvers = {
                     throw new UserNotFoundError("Colaborator or their boss not found");
                 }
 
+                const startDate = new Date(inputs.startDate);
+                const endDate = new Date(inputs.endDate)
+
+                if (startDate > endDate) {
+                    throw new DateError('Start date cannot be after end date');
+                }
+
                 const absence = await tx.absence.create({
                     data: {
                         colaboratorId: inputs.colaboratorId,
-                        startDate: new Date(inputs.startDate),
-                        endDate: new Date(inputs.endDate),
+                        startDate: startDate,
+                        endDate: endDate,
                         reviewer: bossId[0].bossId,
                         createdBy: context.authData.userId,
                         updatedAt: new Date(),

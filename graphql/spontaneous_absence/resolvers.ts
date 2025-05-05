@@ -2,13 +2,14 @@ import { StatusNotFoundError } from "@/errors/StatusNotFoundError";
 import { OurContext } from "../context";
 import { User, Justification, Absence, SpontaneousAbsence, SpontaneousAbsenceStatus, Enum_Spotaneus_Absence_Status_Name } from "@prisma/client";
 import { ColaboratorNotFoundError } from "@/errors/ColaboratorNotFoundError";
+import { DateError } from "@/errors/DateError";
 
 interface SpontaneousAbsenceCreation {
     colaboratorId: string;
     startDate: Date;
     endDate: Date | null;// Null is in case the boss added the absence when he saw the colaborator wasnt there,
     //  but he doesnt know when the colaborator will be back
-    comments: string;
+    comments: string | null;
 }
 
 interface CompleteSpontaneousAbsence {
@@ -28,11 +29,6 @@ interface CompleteSpontaneousAbsence {
 
 const spontaneousAbsenceResolvers = {
     Mutation: {
-        /*
-        TODO:
-        - test to create an spontaneous absence when the endDate is known
-        - test to create an spontaneous absence when the endDate is null
-        */
         createSpontaneousAbsence: async (parent: null, 
                             { inputs }: { inputs: SpontaneousAbsenceCreation },
                             context: OurContext) => {
@@ -47,11 +43,17 @@ const spontaneousAbsenceResolvers = {
                     throw new ColaboratorNotFoundError('Colaborator not found');
                 }
                 const startDate = new Date(inputs.startDate);
+                const endDate = (inputs.endDate) ? new Date(inputs.endDate) : new Date(startDate.getTime() + 5 * 60 * 1000); // Default to 5 minutes later
+
+                if (startDate > endDate) {
+                    throw new DateError('Start date cannot be after end date');
+                }
+
                 const absence = await tx.absence.create({
                     data: {
                         colaboratorId: inputs.colaboratorId,
                         startDate: startDate,
-                        endDate: (inputs.endDate) ? new Date(inputs.endDate) : new Date(startDate.getTime() + 5 * 60 * 1000), // Default to 5 minutes later
+                        endDate: endDate,
                         createdBy: context.authData.userId,
                         updatedAt: new Date(),
                         reviewer: colaborator?.bossId || context.authData.userId,
