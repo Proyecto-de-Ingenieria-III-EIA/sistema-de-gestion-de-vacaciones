@@ -29,7 +29,6 @@ interface RequestedAbsenceCreationInput {
 
     description?: string;
     mediaUrl?: string;
-    comments?: string;
 }
 
 const requestedAbsenceResolvers = {
@@ -111,20 +110,10 @@ const requestedAbsenceResolvers = {
                     }
                 });
 
-                const requestStatus = await tx.requestStatus.findFirst({
-                    where: {
-                        name: Enum_Requested_Absence_Status_Name.PENDING,
-                    }
-                });
-
-                if (!requestStatus) {
-                    throw new StatusNotFoundError('Request Status not found');
-                }
-
                 const requestedAbsence = await tx.requestedAbsence.create({
                     data: {
                         absenceId: absence.dbId,
-                        status: requestStatus.dbId,
+                        // by default, absence is PENDING (defined in the prisma)
                         decisionDate: null,
                         updatedAt: new Date(),
                     }
@@ -150,8 +139,8 @@ const requestedAbsenceResolvers = {
                         }
                     });
                 } else {
-                    if (!inputs.description || !inputs.mediaUrl || !inputs.comments) {
-                        throw new Error('Description, mediaUrl and comments are required for informal absence');
+                    if (!inputs.description) {
+                        throw new Error('Description is required for informal absence');
                     }
                     await tx.informalAbsence.create({
                         data: {
@@ -164,9 +153,9 @@ const requestedAbsenceResolvers = {
                         data: {
                             absenceId: absence.dbId,
                             description: inputs.description,
-                            media: inputs.mediaUrl,
+                            media: inputs.mediaUrl || null,
                             uploadedAt: new Date(),
-                            comments: inputs.comments,
+                            comments: null,  // Comments are meant for the boss to fill in, not the colaborator in the request
                             updatedAt: new Date(),
                         }
                     })

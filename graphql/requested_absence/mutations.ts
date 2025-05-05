@@ -9,7 +9,6 @@ const requestedAbsenceMutations = gql`
 
         description: String
         mediaUrl: String
-        comments: String
     }
 
     type Mutation{
