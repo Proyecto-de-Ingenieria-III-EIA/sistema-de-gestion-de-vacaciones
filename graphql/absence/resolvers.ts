@@ -111,6 +111,29 @@ const absenceResolvers = {
                 },
             });
         },
+    },
+    Absence: {
+        colaborator: async (parent: { colaboratorId: string }, args: null, context: OurContext) => {
+            return await context.db.user.findUnique({
+                where: {
+                    id: parent.colaboratorId,
+                },
+            });
+        },
+        requestedAbsence: async (parent: { dbId: string }, args: null, context: OurContext) => {
+            return await context.db.requestedAbsence.findUnique({
+                where: {
+                    absenceId: parent.dbId,
+                },
+            });
+        },
+        spontaneousAbsence: async (parent: { dbId: string }, args: null, context: OurContext) => {
+            return await context.db.spontaneousAbsence.findUnique({
+                where: {
+                    absenceId: parent.dbId,
+                },
+            });
+        },
     }
     
 };

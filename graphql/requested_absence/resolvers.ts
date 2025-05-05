@@ -1,5 +1,5 @@
 import { OurContext } from "../context";
-import { RequestedAbsence, VacationAbsence, InformalAbsence, RequestStatus, User, Enum_Requested_Absence_Status_Name } from "@prisma/client";
+import { VacationAbsence, InformalAbsence, RequestStatus, User, Enum_Requested_Absence_Status_Name } from "@prisma/client";
 import { NotSufficentCredentialsError } from "@/errors/NotSufficentCredentialsError";
 import { Enum_RoleName } from "@prisma/client";
 import { UserNotFoundError } from "@/errors/UserNotFoundError";
@@ -31,6 +31,17 @@ interface RequestedAbsenceCreationInput {
     description?: string;
     mediaUrl?: string;
 }
+
+interface RequestedAbsence {
+    absenceId: string;
+    statusId: string;
+    aproverId: string;
+    decisionDate: Date | null;
+
+    createdAt: Date;
+    updatedAt: Date;
+}
+
 
 const requestedAbsenceResolvers = {
     Query: {
@@ -175,7 +186,6 @@ const requestedAbsenceResolvers = {
                     endDate: absence.endDate,
                     decisionDate: requestedAbsence.decisionDate,
                     type: inputs.isVacation ? 'VACATION' : 'INFORMAL',
-                    status: requestStatus.name,
                     aprover: absence.reviewer,
                     createdAt: absence.createdAt,
                     updatedAt: absence.updatedAt,
@@ -213,7 +223,44 @@ const requestedAbsenceResolvers = {
                     }
                 });
         }
-    }
+    },
+    RequestedAbsence: {
+        absence: async (parent: RequestedAbsence, args: null, context: OurContext) => {
+            return context.db.absence.findFirst({
+                where: {
+                    dbId: parent.absenceId,
+                }
+            });
+        },
+        currentStatus: async (parent: RequestedAbsence, args: null, context: OurContext) => {
+            return context.db.requestStatus.findFirst({
+                where: {
+                    dbId: parent.statusId,
+                }
+            });
+        },
+        aproverUser: async (parent: RequestedAbsence, args: null, context: OurContext) => {
+            return context.db.user.findFirst({
+                where: {
+                    id: parent.aproverId,
+                }
+            });
+        },
+        vacationAbsence: async (parent: RequestedAbsence, args: null, context: OurContext) => {
+            return context.db.vacationAbsence.findFirst({
+                where: {
+                    absenceId: parent.absenceId,
+                }
+            });
+        },
+        informalAbsence: async (parent: RequestedAbsence, args: null, context: OurContext) => {
+            return context.db.informalAbsence.findFirst({
+                where: {
+                    absenceId: parent.absenceId,
+                }
+            });
+        },
+    },
 };
 
 export { requestedAbsenceResolvers };
