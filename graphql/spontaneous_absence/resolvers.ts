@@ -66,7 +66,7 @@ const spontaneousAbsenceResolvers = {
                         comments: inputs.comments,
                         // by default, absence is PENDING (defined in the prisma)
                         updatedAt: new Date(),
-                        endDateAdded: false,
+                        endDateAdded: inputs.endDate ? true : false,
                     }
                 });
 
