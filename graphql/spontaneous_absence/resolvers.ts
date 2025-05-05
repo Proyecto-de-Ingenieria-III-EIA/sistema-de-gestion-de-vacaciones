@@ -28,7 +28,11 @@ interface CompleteSpontaneousAbsence {
 
 const spontaneousAbsenceResolvers = {
     Mutation: {
-        // TODO: test
+        /*
+        TODO:
+        - test to create an spontaneous absence when the endDate is known
+        - test to create an spontaneous absence when the endDate is null
+        */
         createSpontaneousAbsence: async (parent: null, 
                             { inputs }: { inputs: SpontaneousAbsenceCreation },
                             context: OurContext) => {
