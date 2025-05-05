@@ -1,11 +1,13 @@
 import { StatusNotFoundError } from "@/errors/StatusNotFoundError";
 import { OurContext } from "../context";
 import { User, Justification, Absence, SpontaneousAbsence, SpontaneousAbsenceStatus, Enum_Spotaneus_Absence_Status_Name } from "@prisma/client";
+import { ColaboratorNotFoundError } from "@/errors/ColaboratorNotFoundError";
 
 interface SpontaneousAbsenceCreation {
     colaboratorId: string;
     startDate: Date;
-    endDate: Date;
+    endDate: Date | null;// Null is in case the boss added the absence when he saw the colaborator wasnt there,
+    //  but he doesnt know when the colaborator will be back
     comments: string;
 }
 
@@ -26,36 +28,39 @@ interface CompleteSpontaneousAbsence {
 
 const spontaneousAbsenceResolvers = {
     Mutation: {
+        // TODO: test
         createSpontaneousAbsence: async (parent: null, 
                             { inputs }: { inputs: SpontaneousAbsenceCreation },
                             context: OurContext) => {
             return await context.db.$transaction(async (tx) => {
-                const absence = await tx.absence.create({
-                    data: {
-                        colaboratorId: inputs.colaboratorId,
-                        startDate: new Date(inputs.startDate),
-                        endDate: new Date(inputs.endDate),
-                        createdBy: context.authData.userId,
-                        updatedAt: new Date(),
+                const colaborator = await tx.user.findUnique({
+                    where: {
+                        id: inputs.colaboratorId,
                     }
                 });
 
-                const spontaneousAbsenceStatus = await tx.spontaneousAbsenceStatus.findFirst({
-                    where: {
-                        name: Enum_Spotaneus_Absence_Status_Name.PENDING,
+                if (!colaborator) {
+                    throw new ColaboratorNotFoundError('Colaborator not found');
+                }
+                const startDate = new Date(inputs.startDate);
+                const absence = await tx.absence.create({
+                    data: {
+                        colaboratorId: inputs.colaboratorId,
+                        startDate: startDate,
+                        endDate: (inputs.endDate) ? new Date(inputs.endDate) : new Date(startDate.getTime() + 5 * 60 * 1000), // Default to 5 minutes later
+                        createdBy: context.authData.userId,
+                        updatedAt: new Date(),
+                        reviewer: colaborator?.bossId || context.authData.userId,
                     }
                 });
-                
-                if (!spontaneousAbsenceStatus) {
-                    throw new StatusNotFoundError('Spontaneous Absence Status not found');
-                }
 
                 const spontaneousAbsence = await tx.spontaneousAbsence.create({
                     data: {
                         absenceId: absence.dbId,
                         comments: inputs.comments,
-                        absenceStatus: spontaneousAbsenceStatus.dbId,
+                        // by default, absence is PENDING (defined in the prisma)
                         updatedAt: new Date(),
+                        endDateAdded: false,
                     }
                 });
 
@@ -66,7 +71,7 @@ const spontaneousAbsenceResolvers = {
                     endDate: absence.endDate,
                     createdById: absence.createdBy,
                     comments: spontaneousAbsence.comments,
-                    absenceStatusId: spontaneousAbsence.absenceStatus,
+                    absenceStatusId: spontaneousAbsence.status,
                 }
             });
         },

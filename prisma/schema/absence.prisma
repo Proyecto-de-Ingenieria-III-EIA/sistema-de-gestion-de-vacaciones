@@ -56,7 +56,9 @@ model SpontaneousAbsence {
   comments      String                   @map("comments")
   createdAt     DateTime                 @default(now()) @map("created_at")
   updatedAt     DateTime                 @updatedAt @map("updated_at")
-  status        String                   @map("status") @default("1231312312") // this is the value of the PENDING entry for the status table
+  status        String                   @map("status") @default("1231312312")  // this is the value of the PENDING entry for the status table
+  endDateAdded  Boolean                  @map("end_date_added") @default(true)  // this is in case a boss adds the absence when he doesnt 
+  // see the colaborator, but does not know when he/she will return
   parentAbsence Absence                  @relation("Spontaneous_Absence", fields: [absenceId], references: [dbId], map: "spontaneous_absence_fk")
   absenceStatus SpontaneousAbsenceStatus @relation("Spontaneous_Absence_Status", fields: [status], references: [dbId], map: "spontaneous_absence_status_fk")
 
