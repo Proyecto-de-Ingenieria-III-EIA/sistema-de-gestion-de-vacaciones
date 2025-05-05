@@ -4,7 +4,7 @@ const spontaneousAbsenceTypes = gql`
     type SpontaneousAbsence {
         absenceId: ID
         comments: String
-        absenceStatus: ID
+        statusId: ID
 
         createdAt: DateTime
         updatedAt: DateTime
@@ -22,7 +22,7 @@ const spontaneousAbsenceTypes = gql`
         endDate: DateTime
         createdById: ID
         comments: String
-        absenceStatusId: ID
+        statusId: ID
 
         colaborator: User
         createdBy: User

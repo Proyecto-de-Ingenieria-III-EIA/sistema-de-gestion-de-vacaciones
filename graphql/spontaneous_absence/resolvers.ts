@@ -1,8 +1,10 @@
 import { StatusNotFoundError } from "@/errors/StatusNotFoundError";
 import { OurContext } from "../context";
-import { User, Justification, Absence, SpontaneousAbsence, SpontaneousAbsenceStatus, Enum_Spotaneus_Absence_Status_Name } from "@prisma/client";
+import { User, Justification, Absence, SpontaneousAbsenceStatus, Enum_Spotaneus_Absence_Status_Name } from "@prisma/client";
 import { ColaboratorNotFoundError } from "@/errors/ColaboratorNotFoundError";
 import { DateError } from "@/errors/DateError";
+import { AbsenceNotFoundError } from "@/errors/AbsenceNotFoundError";
+import { NotSufficentCredentialsError } from "@/errors/NotSufficentCredentialsError";
 
 interface SpontaneousAbsenceCreation {
     colaboratorId: string;
@@ -19,12 +21,21 @@ interface CompleteSpontaneousAbsence {
     endDate: Date;
     createdById: string;
     comments: string;
-    absenceStatusId: string;
+    statusId: string;
 
     colaborator: User;
     createdBy: User;
     absenceStatus: SpontaneousAbsenceStatus;
     justification: Justification;
+}
+
+interface SpontaneousAbsence {
+    absenceId: string;
+    comments: string;
+    statusId: string;
+
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 const spontaneousAbsenceResolvers = {
@@ -77,7 +88,59 @@ const spontaneousAbsenceResolvers = {
                     endDate: absence.endDate,
                     createdById: absence.createdBy,
                     comments: spontaneousAbsence.comments,
-                    absenceStatusId: spontaneousAbsence.status,
+                    statusId: spontaneousAbsence.status,
+                }
+            });
+        },
+        addEndDateToSpontaneousAbsence: async (parent: null, 
+                                        { absenceId, endDate }: { absenceId: string, endDate: Date }, 
+                                        context: OurContext) => {
+            const absence = await context.db.absence.findUnique({
+                where: {
+                    dbId: absenceId,
+                }
+            });
+
+            if (!absence) {
+                throw new AbsenceNotFoundError('Absence not found');
+            }
+            
+            if (absence.createdBy !== context.authData.userId) {
+                throw new NotSufficentCredentialsError('You are not allowed to add an end date to this absence');
+            }
+
+            if (absence.startDate > endDate) {
+                throw new DateError('Start date cannot be after end date');
+            }
+
+            const date = new Date(endDate);
+
+            return await context.db.$transaction(async (tx) => {
+                await tx.absence.update({
+                    where: {
+                        dbId: absenceId,
+                    },
+                    data: {
+                        endDate: date
+                    },
+                });
+
+                const spontaneousAbsence = await tx.spontaneousAbsence.update({
+                    where: {
+                        absenceId: absenceId,
+                    },
+                    data: {
+                        endDateAdded: true,
+                    },
+                });
+
+                return {
+                    absenceId: spontaneousAbsence.absenceId,
+                    comments: spontaneousAbsence.comments,
+                    statusId: spontaneousAbsence.status,
+
+                    createdAt: spontaneousAbsence.createdAt,
+                    updatedAt: spontaneousAbsence.updatedAt,
                 }
             });
         },
@@ -101,7 +164,7 @@ const spontaneousAbsenceResolvers = {
         absenceStatus: (parent: CompleteSpontaneousAbsence, args: null, context: OurContext) => {
             return context.db.spontaneousAbsenceStatus.findUnique({
                 where: {
-                    dbId: parent.absenceStatusId,
+                    dbId: parent.statusId,
                 }
             });
         },
@@ -112,7 +175,31 @@ const spontaneousAbsenceResolvers = {
                 }
             });
         },
+    },
+    SpontaneousAbsence: {
+        parentAbsence: async (parent: SpontaneousAbsence, args: null, context: OurContext) => {
+            return await context.db.absence.findUnique({
+                where: {
+                    dbId: parent.absenceId,
+                }
+            });
+        },
+        status: async (parent: SpontaneousAbsence, args: null, context: OurContext) => {
+            return await context.db.spontaneousAbsenceStatus.findUnique({
+                where: {
+                    dbId: parent.statusId,
+                }
+            });
+        },
+        justification: async (parent: SpontaneousAbsence, args: null, context: OurContext) => {
+            return await context.db.justification.findFirst({
+                where: {
+                    absenceId: parent.absenceId,
+                }
+            });
+        },
     }
+
 };
 
 export { spontaneousAbsenceResolvers };

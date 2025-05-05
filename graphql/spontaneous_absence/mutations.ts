@@ -11,8 +11,9 @@ const spontaneousAbsenceMutations = gql`
     type Mutation {
         # The creator of the absence is the user who is logged in
         createSpontaneousAbsence(inputs: SpontaneousAbsenceCreationInput): CompleteSpontaneousAbsence
-        # TODO: add a "addEndDate" to an absence, in case the boss added the absence when he didnt 
+        # In case the boss added the absence when he didnt 
         # see the colaborator, but he doesnt know when the colaborator will be back
+        addEndDateToSpontaneousAbsence(absenceId: ID, endDate: DateTime): SpontaneousAbsence
     }
 `;
 
