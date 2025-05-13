@@ -39,7 +39,7 @@ const absenceResolvers = {
                     absence."colaborator_id" as "colaboratorId",
 
                     CASE
-                        WHEN spontaneous."absence_id" IS NULL THEN spontaneous."absence_status"
+                        WHEN spontaneous."absence_id" IS NULL THEN spontaneous."status"
                         ELSE request."status"
                     END as "statusId",
 
