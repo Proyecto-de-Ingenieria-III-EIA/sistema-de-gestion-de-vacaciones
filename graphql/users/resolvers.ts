@@ -109,9 +109,7 @@ const userResolvers = {
             return role[0];
         },
 
-        absences: async (parent: User, args: null, { db }: OurContext) => {
-            // TODO: restrict acces to only the allowed users
-
+        absences: async (parent: User, args: null, { db, authData }: OurContext) => {
             return db.absence.findMany({
                 where: {
                     colaboratorId: parent.id,
