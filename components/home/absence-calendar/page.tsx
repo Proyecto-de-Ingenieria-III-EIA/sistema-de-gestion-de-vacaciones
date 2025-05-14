@@ -69,10 +69,7 @@ export default function AbsenceCalendarPage() {
       endDate: absence.endDate,
       type: absence.type,
     }
-
     collaboratorsMap.get(collaboratorId).absences.push(absenceData) // Push absences to the map that groups collaborator id with its info
-
-    console.log(`Colaborador ID: ${collaboratorId}, Name: ${collaboratorName}`, absenceData)
   })
 
   /* List of collaborators as the values from the map */

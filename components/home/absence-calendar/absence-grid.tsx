@@ -23,7 +23,6 @@ type AbsenceGridProps = {
 }
 
 export function AbsenceGrid({ collaborators, currentDate }: AbsenceGridProps) {
-  console.log("AbsenceGrid Props",collaborators, currentDate)
   const daysInMonth = getDaysInMonth(currentDate)
   const firstDayOfMonth = startOfMonth(currentDate)
 
