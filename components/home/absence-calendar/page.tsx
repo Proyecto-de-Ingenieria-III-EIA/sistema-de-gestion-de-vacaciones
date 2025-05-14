@@ -24,7 +24,7 @@ export default function AbsenceCalendarPage() {
       startDate: firstDayOfMonth.toISOString(),
       endDate: lastDayOfMonth.toISOString(),
     },
-    fetchPolicy: "network-only", // Asegura que siempre obtenemos datos frescos al cambiar de mes
+    fetchPolicy: "network-only", // Ignores cache, always refetchs fresh data
   })
 
   // Actualizar la consulta cuando cambia el mes
@@ -33,7 +33,7 @@ export default function AbsenceCalendarPage() {
       startDate: firstDayOfMonth.toISOString(),
       endDate: lastDayOfMonth.toISOString(),
     })
-  }, [currentDate, refetch, firstDayOfMonth, lastDayOfMonth])
+  }, [currentDate, refetch, firstDayOfMonth, lastDayOfMonth]) // Triggers for the refetch
 
   const goToPreviousMonth = () => {
     setCurrentDate((prevDate) => subMonths(prevDate, 1))
@@ -51,6 +51,8 @@ export default function AbsenceCalendarPage() {
 
   absences.forEach((absence) => {
     const collaboratorId = absence.colaborator.id
+    //debugginh
+    const collaboratorName = absence.colaborator.name
 
     if (!collaboratorsMap.has(collaboratorId)) {
       collaboratorsMap.set(collaboratorId, {
@@ -59,16 +61,21 @@ export default function AbsenceCalendarPage() {
         department: "", // La API no proporciona departamento, podríamos añadirlo en el futuro
         absences: [],
       })
-    }
 
-    collaboratorsMap.get(collaboratorId).absences.push({
+    }
+    const absenceData = {
       id: `${absence.colaborator.id}-${absence.startDate}`, // Generamos un ID único
       startDate: absence.startDate,
       endDate: absence.endDate,
       type: absence.type,
-    })
+    }
+
+    collaboratorsMap.get(collaboratorId).absences.push(absenceData) // Push absences to the map that groups collaborator id with its info
+
+    console.log(`Colaborador ID: ${collaboratorId}, Name: ${collaboratorName}`, absenceData)
   })
 
+  /* List of collaborators as the values from the map */
   const collaboratorsList = Array.from(collaboratorsMap.values())
 
   return (
