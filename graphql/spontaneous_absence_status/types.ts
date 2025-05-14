@@ -3,7 +3,7 @@ import { gql } from "graphql-tag";
 const spontaneousAbsenceStatusTypes = gql`
     enum Enum_Spotaneus_Absence_Status_Name {
         PENDING
-        APPROVED
+        APROVED
         REJECTED
     }
 
