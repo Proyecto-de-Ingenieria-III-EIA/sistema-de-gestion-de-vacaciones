@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 const requestStatusTypes = gql`
     enum Enum_Requested_Absence_Status_Name {
         PENDING
-        APPROVED
+        APROVED
         REJECTED
     }
 

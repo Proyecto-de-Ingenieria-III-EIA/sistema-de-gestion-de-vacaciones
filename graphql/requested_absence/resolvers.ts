@@ -6,6 +6,7 @@ import { UserNotFoundError } from "@/errors/UserNotFoundError";
 import { StatusNotFoundError } from "@/errors/StatusNotFoundError";
 import { Enum_Absence_Type } from "./../absence/enum_absence_type";
 import { DateError } from "@/errors/DateError";
+import { IncorrectInputError } from "@/errors/IncorrectInputError";
 
 interface WholeRequestedAbsence {
     dbId: string;
@@ -191,6 +192,31 @@ const requestedAbsenceResolvers = {
                     updatedAt: absence.updatedAt,
                 }
             });
+        },
+        makeDecisionRequestedAbsence: async (parent: null, 
+            input : { absenceId: string, decision: Enum_Requested_Absence_Status_Name }, 
+            { db, authData }: OurContext) => {
+                if (authData.role !== Enum_RoleName.ADMIN)
+                    throw new NotSufficentCredentialsError();
+
+                const requestedAbsenceStatus = await db.requestStatus.findFirst({
+                    where: {
+                        name: input.decision,
+                    },
+                });
+
+                if (!requestedAbsenceStatus)
+                    throw new IncorrectInputError("The decision name is not valid");
+
+                return await db.requestedAbsence.update({
+                    where: {
+                        absenceId: input.absenceId,
+                    },
+                    data: {
+                        status: requestedAbsenceStatus.dbId,
+                        decisionDate: new Date(),
+                    },
+                });
         }
     },
     WholeRequestedAbsence: {
