@@ -14,6 +14,8 @@ const spontaneousAbsenceMutations = gql`
         # In case the boss added the absence when he didnt 
         # see the colaborator, but he doesnt know when the colaborator will be back
         addEndDateToSpontaneousAbsence(absenceId: ID, endDate: DateTime): SpontaneousAbsence
+
+        # TODO add accept or deny spontaenous absence as valid
     }
 `;
 

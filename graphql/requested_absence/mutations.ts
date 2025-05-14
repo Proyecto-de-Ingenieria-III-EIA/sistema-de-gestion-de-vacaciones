@@ -13,6 +13,7 @@ const requestedAbsenceMutations = gql`
 
     type Mutation{
         # Place holder, so the API can run
+        # TODO make a function to accept or deny a requested absence
         createRequestedAbsence(inputs: RequestedAbsenceCreationInput): CompleteSpontaneousAbsence
     }
 `;
