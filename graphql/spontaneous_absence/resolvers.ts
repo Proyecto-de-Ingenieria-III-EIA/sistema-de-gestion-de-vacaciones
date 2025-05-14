@@ -1,10 +1,12 @@
 import { StatusNotFoundError } from "@/errors/StatusNotFoundError";
 import { OurContext } from "../context";
-import { User, Justification, Absence, SpontaneousAbsenceStatus, Enum_Spotaneus_Absence_Status_Name } from "@prisma/client";
+import { User, Justification, Absence, SpontaneousAbsenceStatus, Enum_Spotaneus_Absence_Status_Name, Enum_RoleName } from "@prisma/client";
 import { ColaboratorNotFoundError } from "@/errors/ColaboratorNotFoundError";
 import { DateError } from "@/errors/DateError";
 import { AbsenceNotFoundError } from "@/errors/AbsenceNotFoundError";
 import { NotSufficentCredentialsError } from "@/errors/NotSufficentCredentialsError";
+import { Enum_Absence_Type } from "../absence/enum_absence_type";
+import { IncorrectInputError } from "@/errors/IncorrectInputError";
 
 interface SpontaneousAbsenceCreation {
     colaboratorId: string;
@@ -144,6 +146,30 @@ const spontaneousAbsenceResolvers = {
                 }
             });
         },
+        makeDecisionSpontaneousAbsence: async (parent: null, 
+            args: { absenceId: string, decision: Enum_Spotaneus_Absence_Status_Name }, 
+            { db, authData }: OurContext) => {
+                if (authData.role !== Enum_RoleName.ADMIN)
+                    throw new NotSufficentCredentialsError();
+
+                const spontAbsenceStatus = await db.spontaneousAbsenceStatus.findFirst({
+                    where: {
+                        name: args.decision,
+                    }
+                });
+
+                if (!spontAbsenceStatus)
+                    throw new IncorrectInputError("The status name provided is not valid");
+
+                return await db.spontaneousAbsence.update({
+                    where: {
+                        absenceId: args.absenceId,
+                    },
+                    data: {
+                        status: spontAbsenceStatus.dbId,
+                    }
+                });
+        }
     },
     CompleteSpontaneousAbsence: {  
         colaborator: (parent: CompleteSpontaneousAbsence, args: null, context: OurContext) => {
