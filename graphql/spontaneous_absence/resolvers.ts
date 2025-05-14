@@ -152,6 +152,13 @@ const spontaneousAbsenceResolvers = {
                 if (authData.role !== Enum_RoleName.ADMIN)
                     throw new NotSufficentCredentialsError();
 
+                if ((await db.requestedAbsence.count({
+                        where: {
+                            absenceId: args.absenceId,
+                        }
+                    })) === 0)
+                    throw new AbsenceNotFoundError();
+
                 const spontAbsenceStatus = await db.spontaneousAbsenceStatus.findFirst({
                     where: {
                         name: args.decision,

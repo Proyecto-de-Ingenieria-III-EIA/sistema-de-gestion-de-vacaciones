@@ -7,6 +7,7 @@ import { StatusNotFoundError } from "@/errors/StatusNotFoundError";
 import { Enum_Absence_Type } from "./../absence/enum_absence_type";
 import { DateError } from "@/errors/DateError";
 import { IncorrectInputError } from "@/errors/IncorrectInputError";
+import { AbsenceNotFoundError } from "@/errors/AbsenceNotFoundError";
 
 interface WholeRequestedAbsence {
     dbId: string;
@@ -198,6 +199,13 @@ const requestedAbsenceResolvers = {
             { db, authData }: OurContext) => {
                 if (authData.role !== Enum_RoleName.ADMIN)
                     throw new NotSufficentCredentialsError();
+
+                if ((await db.requestedAbsence.count({
+                        where: {
+                            absenceId: input.absenceId,
+                        }
+                    })) === 0)
+                    throw new AbsenceNotFoundError();
 
                 const requestedAbsenceStatus = await db.requestStatus.findFirst({
                     where: {
