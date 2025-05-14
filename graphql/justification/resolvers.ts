@@ -41,35 +41,35 @@ const justificationResolvers = {
                 }
             });
         },
-        addComment: async (parent: null, { input }: { input: JustificationCreationInput }, { db }: OurContext) => {
-            const existingJustification = await db.justification.findFirst({
-                    where: {
-                        absenceId: input.absenceId,
-                    }
-                });
-            if (!existingJustification)
-                throw new NonExistentJustificationError();
+        // addComment: async (parent: null, { input }: { input: JustificationCreationInput }, { db }: OurContext) => {
+        //     const existingJustification = await db.justification.findFirst({
+        //             where: {
+        //                 absenceId: input.absenceId,
+        //             }
+        //         });
+        //     if (!existingJustification)
+        //         throw new NonExistentJustificationError();
 
-            if (input.description)
-                existingJustification.description = input.description;
+        //     if (input.description)
+        //         existingJustification.description = input.description;
 
-            if (input.media)
-                existingJustification.media = input.media;
+        //     if (input.media)
+        //         existingJustification.media = input.media;
 
-            if (input.comments)
-                existingJustification.comments = input.comments;
+        //     if (input.comments)
+        //         existingJustification.comments = input.comments;
 
-            db.justification.update({
-                where: {
-                    absenceId: input.absenceId,
-                },
-                data: {
-                    description: existingJustification.description,
-                    media: existingJustification.media,
-                    comments: existingJustification.comments,
-                },
-            })
-        }
+        //     db.justification.update({
+        //         where: {
+        //             absenceId: input.absenceId,
+        //         },
+        //         data: {
+        //             description: existingJustification.description,
+        //             media: existingJustification.media,
+        //             comments: existingJustification.comments,
+        //         },
+        //     })
+        // }
     },
     Justification: {
         informalAbsence: async (parent: Justification, args: null, context: OurContext) => {
