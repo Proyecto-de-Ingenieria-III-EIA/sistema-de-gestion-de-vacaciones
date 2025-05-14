@@ -69,7 +69,6 @@ model Justification {
   absenceId   String   @id @map("absence_id")
   description String   @map("description")
   media       String?  @map("media")
-  uploadedAt  DateTime @map("uploaded_at")
   comments    String?  @map("comments")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt
