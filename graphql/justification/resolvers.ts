@@ -2,6 +2,7 @@ import { AbsenceNotFoundError } from "@/errors/AbsenceNotFoundError";
 import { OurContext } from "../context";
 import { IncorrectInputError } from "@/errors/IncorrectInputError";
 import { ExistingJustificationError } from "@/errors/ExistingJustificationError";
+import { Justification } from "@prisma/client";
 
 interface JustificationCreationInput {
     absenceId: string;
@@ -36,6 +37,22 @@ const justificationResolvers = {
                 data: {
                     ...input,
                     updatedAt: new Date(),
+                }
+            });
+        },
+    },
+    Justification: {
+        informalAbsence: async (parent: Justification, args: null, context: OurContext) => {
+            return await context.db.informalAbsence.findFirst({
+                where: {
+                    absenceId: parent.absenceId,
+                }
+            });
+        },
+        spontaneousAbsence: async (parent: Justification, args: null, context: OurContext) => {
+            return await context.db.spontaneousAbsence.findFirst({
+                where: {
+                    absenceId: parent.absenceId,
                 }
             });
         },
