@@ -1,3 +1,5 @@
+// IMPORTANT NOTE
+// The notification is created by a trigger in the database
 model AbsenceNotification {
   absenceId           String  @map("absence_id") @id
   isForBoss           Boolean @map("is_for_boss") @default(false)

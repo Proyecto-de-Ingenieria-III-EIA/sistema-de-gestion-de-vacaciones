@@ -1,3 +1,6 @@
+# Important note
+The Notification_Absence is created by a trigger in the database
+
 ## Existing types (That I remember to add here):
 `Note: it is a good idea to check for an automatic documentation tool for graphql`
 ``` graphql
