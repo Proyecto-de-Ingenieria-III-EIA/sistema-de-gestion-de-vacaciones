@@ -1,6 +1,6 @@
 "use client"
 
-import { getDaysInMonth, startOfMonth, isWithinInterval, parseISO } from "date-fns"
+import { getDaysInMonth, startOfMonth, isWithinInterval, parseISO, startOfDay } from "date-fns"
 import { cn } from "@/lib/utils"
 
 type Absence = {
@@ -31,11 +31,13 @@ export function AbsenceGrid({ collaborators, currentDate }: AbsenceGridProps) {
 
   // Función para determinar si un día tiene una ausencia para un colaborador
   const getAbsenceForDay = (collaborator: CollaboratorWithAbsences, day: number) => {
-    const date = new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), day)
+
+    const date = startOfDay(new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), day))
 
     return collaborator.absences.find((absence) => {
-      const start = parseISO(absence.startDate)
-      const end = parseISO(absence.endDate)
+
+      const start = startOfDay(parseISO(absence.startDate))
+      const end = startOfDay(parseISO(absence.endDate))
 
       return isWithinInterval(date, { start, end })
     })
