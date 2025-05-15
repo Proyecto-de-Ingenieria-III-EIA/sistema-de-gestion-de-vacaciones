@@ -1,8 +1,8 @@
 model AbsenceNotification {
-  absenceId             String  @map("absence_id") @id
-  notificationForBoss   Boolean @map("notification_for_boss") @default(false)
-  notificationForWorker Boolean @map("notification_for_worker") @default(false)
-  notificationMessage   String? @map("notification_message")
+  absenceId           String  @map("absence_id") @id
+  isForBoss           Boolean @map("is_for_boss") @default(false)
+  isForWorker         Boolean @map("is_for_worker") @default(false)
+  notificationMessage String? @map("message")
 
   absence Absence @relation("parent_absence", fields: [absenceId], references: [dbId], map: "parent_absence_notification")
   @@map("Absence_Notification")
