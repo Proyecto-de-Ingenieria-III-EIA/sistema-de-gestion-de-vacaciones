@@ -5,4 +5,5 @@ export const messages = {
     requestDecisionMade: "A decision has been made for your request",
     spontaneousAbsenceCreation: "Your boss has marked you an absence",
     spontaneousAbsenceAddedEndDate: "Your boss has added an end date for your absence",
+    spontaneousAbsenceDecisionMade: "A decision has been taken on your unjustified absence",
 }

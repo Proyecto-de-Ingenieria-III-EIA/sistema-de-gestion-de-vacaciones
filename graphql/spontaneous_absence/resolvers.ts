@@ -172,7 +172,6 @@ const spontaneousAbsenceResolvers = {
         makeDecisionSpontaneousAbsence: async (parent: null, 
             args: { absenceId: string, decision: Enum_Spotaneus_Absence_Status_Name }, 
             { db, authData }: OurContext) => {
-                // TODO add notification
                 if (authData.role !== Enum_RoleName.ADMIN)
                     throw new NotSufficentCredentialsError();
 
@@ -192,13 +191,27 @@ const spontaneousAbsenceResolvers = {
                 if (!spontAbsenceStatus)
                     throw new IncorrectInputError("The status name provided is not valid");
 
-                return await db.spontaneousAbsence.update({
-                    where: {
-                        absenceId: args.absenceId,
-                    },
-                    data: {
-                        status: spontAbsenceStatus.dbId,
-                    }
+
+                return db.$transaction(async (tx) => {
+                        await tx.absenceNotification.update({
+                            where: {
+                                absenceId: args.absenceId,
+                            },
+                            data: {
+                                isForWorker: true,
+                                hasBeenSeen: false,
+                                message: messages.spontaneousAbsenceDecisionMade,
+                            }
+                        });
+
+                        return await tx.spontaneousAbsence.update({
+                            where: {
+                                absenceId: args.absenceId,
+                            },
+                            data: {
+                                status: spontAbsenceStatus.dbId,
+                            }
+                        });
                 });
         }
     },
