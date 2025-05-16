@@ -8,6 +8,7 @@ import { Enum_Absence_Type } from "./../absence/enum_absence_type";
 import { DateError } from "@/errors/DateError";
 import { IncorrectInputError } from "@/errors/IncorrectInputError";
 import { AbsenceNotFoundError } from "@/errors/AbsenceNotFoundError";
+import { messages } from "../justification/messages";
 
 interface WholeRequestedAbsence {
     dbId: string;
@@ -160,6 +161,7 @@ const requestedAbsenceResolvers = {
                             updatedAt: new Date(),
                         }
                     });
+
                 } else {
                     if (!inputs.description) {
                         throw new Error('Description is required for informal absence');
@@ -176,12 +178,23 @@ const requestedAbsenceResolvers = {
                             absenceId: absence.dbId,
                             description: inputs.description,
                             media: inputs.mediaUrl || null,
-                            uploadedAt: new Date(),
                             comments: null,  // Comments are meant for the boss to fill in, not the colaborator in the request
                             updatedAt: new Date(),
                         }
                     })
                 }
+
+                await tx.absenceNotification.update({
+                        where: {
+                            absenceId: absence.dbId,
+                        },
+                        data: {
+                            isForBoss: true,
+                            hasBeenSeen: false,
+                            message: (inputs.isVacation) ? messages.vacationAbsenceRequest : messages.informalAbsenceRequest,
+                        },
+                    });
+
                 return {
                     dbId: absence.dbId,
                     colaboratorId: absence.colaboratorId,
