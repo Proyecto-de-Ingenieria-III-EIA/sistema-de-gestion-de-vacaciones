@@ -7,6 +7,7 @@ import { AbsenceNotFoundError } from "@/errors/AbsenceNotFoundError";
 import { NotSufficentCredentialsError } from "@/errors/NotSufficentCredentialsError";
 import { Enum_Absence_Type } from "../absence/enum_absence_type";
 import { IncorrectInputError } from "@/errors/IncorrectInputError";
+import { messages } from "../notification_absence/messages";
 
 interface SpontaneousAbsenceCreation {
     colaboratorId: string;
@@ -45,7 +46,6 @@ const spontaneousAbsenceResolvers = {
         createSpontaneousAbsence: async (parent: null, 
                             { inputs }: { inputs: SpontaneousAbsenceCreation },
                             context: OurContext) => {
-            // TODO add notification for worker
             return await context.db.$transaction(async (tx) => {
                 const colaborator = await tx.user.findUnique({
                     where: {
@@ -81,6 +81,17 @@ const spontaneousAbsenceResolvers = {
                         // by default, absence is PENDING (defined in the prisma)
                         updatedAt: new Date(),
                         endDateAdded: inputs.endDate ? true : false,
+                    }
+                });
+
+                await tx.absenceNotification.update({
+                    where: {
+                        absenceId: absence.dbId
+                    },
+                    data: {
+                        isForWorker: true,
+                        hasBeenSeen: false,
+                        message: messages.spontaneousAbsenceCreation,
                     }
                 });
 
