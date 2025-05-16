@@ -15,6 +15,7 @@ interface JustificationCreationInput {
 const justificationResolvers = {
     Mutation: {
         createJustification: async (parent: null, { input }: { input: JustificationCreationInput }, { db }: OurContext) => {
+            // TODO add notification
             const absence = await db.absence.findFirst({
                     where: {
                         dbId: input.absenceId,
@@ -70,6 +71,8 @@ const justificationResolvers = {
         //         },
         //     })
         // }
+        // TODO:Add a method to add comments, add method to update the justification
+        // TODO: revise that you cannot modify the justification after a decision has been made
     },
     Justification: {
         informalAbsence: async (parent: Justification, args: null, context: OurContext) => {

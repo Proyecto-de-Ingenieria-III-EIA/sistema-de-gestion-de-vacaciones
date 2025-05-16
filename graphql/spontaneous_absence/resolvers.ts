@@ -45,6 +45,7 @@ const spontaneousAbsenceResolvers = {
         createSpontaneousAbsence: async (parent: null, 
                             { inputs }: { inputs: SpontaneousAbsenceCreation },
                             context: OurContext) => {
+            // TODO add notification for worker
             return await context.db.$transaction(async (tx) => {
                 const colaborator = await tx.user.findUnique({
                     where: {
@@ -97,6 +98,7 @@ const spontaneousAbsenceResolvers = {
         addEndDateToSpontaneousAbsence: async (parent: null, 
                                         { absenceId, endDate }: { absenceId: string, endDate: Date }, 
                                         context: OurContext) => {
+            // TODO add a notification
             const absence = await context.db.absence.findUnique({
                 where: {
                     dbId: absenceId,
@@ -149,6 +151,7 @@ const spontaneousAbsenceResolvers = {
         makeDecisionSpontaneousAbsence: async (parent: null, 
             args: { absenceId: string, decision: Enum_Spotaneus_Absence_Status_Name }, 
             { db, authData }: OurContext) => {
+                // TODO add notification
                 if (authData.role !== Enum_RoleName.ADMIN)
                     throw new NotSufficentCredentialsError();
 

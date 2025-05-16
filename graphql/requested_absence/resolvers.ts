@@ -99,6 +99,7 @@ const requestedAbsenceResolvers = {
     },
     Mutation: {
         createRequestedAbsence: async (parent: null, { inputs }: { inputs: RequestedAbsenceCreationInput }, context: OurContext) => {
+            // TODO: add a notification when creating
             return await context.db.$transaction(async (tx) => {
                 const bossId: [{ bossId: string }] = await tx.$queryRaw<[{ bossId: string }]>`
                     SELECT 
@@ -197,6 +198,7 @@ const requestedAbsenceResolvers = {
         makeDecisionRequestedAbsence: async (parent: null, 
             input : { absenceId: string, decision: Enum_Requested_Absence_Status_Name }, 
             { db, authData }: OurContext) => {
+                // TODO add notification
                 if (authData.role !== Enum_RoleName.ADMIN)
                     throw new NotSufficentCredentialsError();
 
