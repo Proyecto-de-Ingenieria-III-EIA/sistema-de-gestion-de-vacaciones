@@ -109,7 +109,6 @@ const spontaneousAbsenceResolvers = {
         addEndDateToSpontaneousAbsence: async (parent: null, 
                                         { absenceId, endDate }: { absenceId: string, endDate: Date }, 
                                         context: OurContext) => {
-            // TODO add a notification
             const absence = await context.db.absence.findUnique({
                 where: {
                     dbId: absenceId,
@@ -147,6 +146,17 @@ const spontaneousAbsenceResolvers = {
                     data: {
                         endDateAdded: true,
                     },
+                });
+
+                await tx.absenceNotification.update({
+                    where: {
+                        absenceId,
+                    },
+                    data: {
+                        isForWorker: true,
+                        hasBeenSeen: false,
+                        message: messages.spontaneousAbsenceAddedEndDate,
+                    }
                 });
 
                 return {
