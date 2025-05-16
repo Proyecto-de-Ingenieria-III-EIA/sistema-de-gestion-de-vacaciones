@@ -15,7 +15,6 @@ interface JustificationCreationInput {
 const justificationResolvers = {
     Mutation: {
         createJustification: async (parent: null, { input }: { input: JustificationCreationInput }, { db }: OurContext) => {
-            // TODO add notification
             const absence = await db.absence.findFirst({
                     where: {
                         dbId: input.absenceId,
@@ -35,11 +34,23 @@ const justificationResolvers = {
             if (!input.description)
                 throw new IncorrectInputError("The justification must have a description")
 
-            return await db.justification.create({
-                data: {
-                    ...input,
-                    updatedAt: new Date(),
-                }
+            return await db.$transaction(async (tx) => {
+                await tx.absenceNotification.update({
+                    where: {
+                        absenceId: input.absenceId,
+                    },
+                    data: {
+                        isForBoss: true,
+                        hasBeenSeen: false,
+                    },
+                });
+
+                return await tx.justification.create({
+                    data: {
+                        ...input,
+                        updatedAt: new Date(),
+                    }
+                });
             });
         },
         // addComment: async (parent: null, { input }: { input: JustificationCreationInput }, { db }: OurContext) => {
