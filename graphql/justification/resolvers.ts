@@ -4,7 +4,7 @@ import { IncorrectInputError } from "@/errors/IncorrectInputError";
 import { ExistingJustificationError } from "@/errors/ExistingJustificationError";
 import { Justification } from "@prisma/client";
 import { NonExistentJustificationError } from "@/errors/NonExistentJustificationError";
-import { messages } from "./../justification/messages";
+import { messages } from "../notification_absence/messages";
 
 interface JustificationCreationInput {
     absenceId: string;
