@@ -100,7 +100,6 @@ const requestedAbsenceResolvers = {
     },
     Mutation: {
         createRequestedAbsence: async (parent: null, { inputs }: { inputs: RequestedAbsenceCreationInput }, context: OurContext) => {
-            // TODO: add a notification when creating
             return await context.db.$transaction(async (tx) => {
                 const bossId: [{ bossId: string }] = await tx.$queryRaw<[{ bossId: string }]>`
                     SELECT 
