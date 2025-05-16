@@ -8,7 +8,7 @@ import { Enum_Absence_Type } from "./../absence/enum_absence_type";
 import { DateError } from "@/errors/DateError";
 import { IncorrectInputError } from "@/errors/IncorrectInputError";
 import { AbsenceNotFoundError } from "@/errors/AbsenceNotFoundError";
-import { messages } from "../justification/messages";
+import { messages } from "../notification_absence/messages";
 
 interface WholeRequestedAbsence {
     dbId: string;
@@ -210,7 +210,6 @@ const requestedAbsenceResolvers = {
         makeDecisionRequestedAbsence: async (parent: null, 
             input : { absenceId: string, decision: Enum_Requested_Absence_Status_Name }, 
             { db, authData }: OurContext) => {
-                // TODO add notification
                 if (authData.role !== Enum_RoleName.ADMIN)
                     throw new NotSufficentCredentialsError();
 
@@ -230,15 +229,29 @@ const requestedAbsenceResolvers = {
                 if (!requestedAbsenceStatus)
                     throw new IncorrectInputError("The decision name is not valid");
 
-                return await db.requestedAbsence.update({
-                    where: {
-                        absenceId: input.absenceId,
-                    },
-                    data: {
-                        status: requestedAbsenceStatus.dbId,
-                        decisionDate: new Date(),
-                    },
+                return db.$transaction(async (tx) => {
+                    await tx.absenceNotification.update({
+                        where: {
+                            absenceId: input.absenceId,
+                        },
+                        data: {
+                            isForWorker: true,
+                            hasBeenSeen: false,
+                            message: messages.requestDecisionMade,
+                        },
+                    });
+
+                    await tx.requestedAbsence.update({
+                        where: {
+                            absenceId: input.absenceId,
+                        },
+                        data: {
+                            status: requestedAbsenceStatus.dbId,
+                            decisionDate: new Date(),
+                        },
+                    });
                 });
+                
         }
     },
     WholeRequestedAbsence: {
