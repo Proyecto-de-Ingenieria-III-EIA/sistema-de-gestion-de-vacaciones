@@ -78,7 +78,7 @@ const spontaneousAbsenceResolvers = {
                 const spontaneousAbsence = await tx.spontaneousAbsence.create({
                     data: {
                         absenceId: absence.dbId,
-                        // by default, absence is PENDING (defined in the prisma)
+                        // by default, spontaneous_absence is PENDING (defined in the prisma)
                         updatedAt: new Date(),
                         endDateAdded: inputs.endDate ? true : false,
                     }
@@ -101,7 +101,7 @@ const spontaneousAbsenceResolvers = {
                     startDate: absence.startDate,
                     endDate: absence.endDate,
                     createdById: absence.createdBy,
-                    comments: spontaneousAbsence.comments,
+                    comments: absence.comments,
                     statusId: spontaneousAbsence.status,
                 }
             });
@@ -130,7 +130,7 @@ const spontaneousAbsenceResolvers = {
             const date = new Date(endDate);
 
             return await context.db.$transaction(async (tx) => {
-                await tx.absence.update({
+                const absence = await tx.absence.update({
                     where: {
                         dbId: absenceId,
                     },
@@ -161,7 +161,7 @@ const spontaneousAbsenceResolvers = {
 
                 return {
                     absenceId: spontaneousAbsence.absenceId,
-                    comments: spontaneousAbsence.comments,
+                    comments: absence.comments,
                     statusId: spontaneousAbsence.status,
 
                     createdAt: spontaneousAbsence.createdAt,
