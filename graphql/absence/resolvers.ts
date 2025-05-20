@@ -2,6 +2,7 @@ import { NotSufficentCredentialsError } from "@/errors/NotSufficentCredentialsEr
 import { OurContext } from "@/graphql/context";
 import { Enum_RoleName, User } from "@prisma/client";
 import { Enum_Absence_Type } from "./enum_absence_type";
+import { isContext } from "vm";
 
 interface CompleteAbsence {
     dbId: string;
@@ -20,6 +21,26 @@ interface CompleteAbsence {
 }
 
 const absenceResolvers = {
+    Mutation: {
+        addCommentToAbsence: async (
+            parent: null, 
+            args: { absenceId: string, comments: string },
+            context: OurContext
+            ) => {
+                // TODO test
+            if (context.authData.role !== Enum_RoleName.ADMIN)
+                throw new NotSufficentCredentialsError();
+
+            return context.db.absence.update({
+                where: {
+                    dbId: args.absenceId,
+                },
+                data: {
+                    comments: args.comments,
+                }
+            });
+        },
+    },
     Query: {
         getAbsencesTimePeriod: async (parent: null, args: { startDate: string, endDate: string}, context: OurContext) => {
             if (!context.authData || context.authData.role !== Enum_RoleName.ADMIN) {
