@@ -27,7 +27,6 @@ const absenceResolvers = {
             args: { absenceId: string, comments: string },
             context: OurContext
             ) => {
-                // TODO test
             if (context.authData.role !== Enum_RoleName.ADMIN)
                 throw new NotSufficentCredentialsError();
 
@@ -45,7 +44,6 @@ const absenceResolvers = {
             { absenceId }: { absenceId: string },
             context: OurContext
             ) => {
-                // TODO test
             if (context.authData.role !== Enum_RoleName.ADMIN)
                 throw new NotSufficentCredentialsError();
 
@@ -63,7 +61,6 @@ const absenceResolvers = {
             { absenceId }: { absenceId: string },
             context: OurContext
             ) => {
-                // TODO test
             if (context.authData.role !== Enum_RoleName.ADMIN)
                 throw new NotSufficentCredentialsError();
 
@@ -127,7 +124,6 @@ const absenceResolvers = {
             `;
         },
         getUserAbsences: async (parent: null, { userId }: { userId: string }, { db }: OurContext) => {
-            // TODO test this
             return db.absence.findMany({
                 where: {
                     colaboratorId: userId,
