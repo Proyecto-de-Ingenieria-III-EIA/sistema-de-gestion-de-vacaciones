@@ -69,6 +69,14 @@ const absenceResolvers = {
                     absence."start_date" <= ${endDate} AND absence."end_date" >= ${startDate}
             `;
         },
+        getUserAbsences: async (parent: null, { userId }: { userId: string }, { db }: OurContext) => {
+            // TODO test this
+            return db.absence.findMany({
+                where: {
+                    colaboratorId: userId,
+                },
+            });
+        },
     },
     CompleteAbsence: {
         colaborator: async (parent: CompleteAbsence, args: null, context: OurContext) => {

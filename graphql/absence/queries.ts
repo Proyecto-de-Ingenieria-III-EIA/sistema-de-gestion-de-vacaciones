@@ -4,6 +4,7 @@ const absenceQueries = gql`
   type Query {
     getAbsencesTimePeriod(startDate: DateTime!, endDate: DateTime!): [CompleteAbsence]
     getAllAbsences: [Absence]
+    getUserAbsences(userId: ID): [Absence]
   }
 `;
 

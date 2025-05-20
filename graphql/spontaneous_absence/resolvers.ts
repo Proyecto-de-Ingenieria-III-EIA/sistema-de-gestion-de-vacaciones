@@ -68,6 +68,7 @@ const spontaneousAbsenceResolvers = {
                         colaboratorId: inputs.colaboratorId,
                         startDate: startDate,
                         endDate: endDate,
+                        comments: inputs.comments,
                         createdBy: context.authData.userId,
                         updatedAt: new Date(),
                         reviewer: colaborator?.bossId || context.authData.userId,
@@ -77,7 +78,6 @@ const spontaneousAbsenceResolvers = {
                 const spontaneousAbsence = await tx.spontaneousAbsence.create({
                     data: {
                         absenceId: absence.dbId,
-                        comments: inputs.comments,
                         // by default, absence is PENDING (defined in the prisma)
                         updatedAt: new Date(),
                         endDateAdded: inputs.endDate ? true : false,
