@@ -40,6 +40,42 @@ const absenceResolvers = {
                 }
             });
         },
+        setAbsenceAsSeen: async (
+            parent: null, 
+            { absenceId }: { absenceId: string },
+            context: OurContext
+            ) => {
+                // TODO test
+            if (context.authData.role !== Enum_RoleName.ADMIN)
+                throw new NotSufficentCredentialsError();
+
+            return context.db.absence.update({
+                where: {
+                    dbId: absenceId,
+                },
+                data: {
+                    seen: true,
+                },
+            });
+        },
+        setAbsenceAsNotSeen: async (
+            parent: null, 
+            { absenceId }: { absenceId: string },
+            context: OurContext
+            ) => {
+                // TODO test
+            if (context.authData.role !== Enum_RoleName.ADMIN)
+                throw new NotSufficentCredentialsError();
+
+            return context.db.absence.update({
+                where: {
+                    dbId: absenceId,
+                },
+                data: {
+                    seen: false,
+                },
+            });
+        },
     },
     Query: {
         getAbsencesTimePeriod: async (parent: null, args: { startDate: string, endDate: string}, context: OurContext) => {
