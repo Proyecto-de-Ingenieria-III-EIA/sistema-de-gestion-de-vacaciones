@@ -81,11 +81,10 @@ const notificationAbsenceResolvers = {
                     INNER JOIN "Absence_Notification" as absence_notification
                         ON absence.db_id = absence_notification.absence_id
                 WHERE
-                    absence."colaborator_id" = ${userId} OR absence."reviewer" = ${userId}
+                    (absence."colaborator_id" = ${userId} AND absence_notification.is_for_worker)
+                    OR (absence."reviewer" = ${userId} AND absence_notification.is_for_boss)
                 ;
             `;
-
-            console.log(result);
 
             return result;
         },
