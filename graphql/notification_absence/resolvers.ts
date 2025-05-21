@@ -10,7 +10,7 @@ interface NotificationAbsence {
 
 const notificationAbsenceResolvers = {
     Mutation: {
-        setAsSeen: async (parent: null, input: { absenceId: string, forBoss: boolean }, { db }: OurContext) => {
+        setNotificationAsSeen: async (parent: null, input: { absenceId: string, forBoss: boolean }, { db }: OurContext) => {
             if ((await db.absence.count({ where: { dbId: input.absenceId }})) === 0)
                 throw new AbsenceNotFoundError();
 
@@ -36,7 +36,7 @@ const notificationAbsenceResolvers = {
                     },
                 });
         }, 
-        setAsUnseen: async (parent: null, input: { absenceId: string, forBoss: boolean }, { db }: OurContext) => {
+        setNotificationAsUnseen: async (parent: null, input: { absenceId: string, forBoss: boolean }, { db }: OurContext) => {
             if ((await db.absence.count({ where: { dbId: input.absenceId }})) === 0)
                 throw new AbsenceNotFoundError();
 
@@ -69,9 +69,13 @@ const notificationAbsenceResolvers = {
             { userId }: { userId: String },
             { db }: OurContext
         ) => {
-            return db.$queryRaw`
+            const result = await db.$queryRaw`
                 SELECT
-                    absence_notification.*
+                    absence_notification."absence_id" as "absenceId",
+                    absence_notification."is_for_boss" as "isForBoss",
+                    absence_notification."is_for_worker" as "isForWorker",
+                    absence_notification."message" as "message",
+                    absence_notification."has_been_seen" as "hasBeenSeen"
                 FROM
                     "Absence" as absence
                     INNER JOIN "Absence_Notification" as absence_notification
@@ -79,7 +83,11 @@ const notificationAbsenceResolvers = {
                 WHERE
                     absence."colaborator_id" = ${userId} OR absence."reviewer" = ${userId}
                 ;
-            `
+            `;
+
+            console.log(result);
+
+            return result;
         },
     },
     Notification_Absence: {
@@ -87,9 +95,9 @@ const notificationAbsenceResolvers = {
             args: null,
             context: OurContext
         ) => {
-            return await context.db.absenceNotification.findFirst({
+            return await context.db.absence.findFirst({
                 where: {
-                    absenceId: parent.absenceId,
+                    dbId: parent.absenceId,
                 }
             });
         }

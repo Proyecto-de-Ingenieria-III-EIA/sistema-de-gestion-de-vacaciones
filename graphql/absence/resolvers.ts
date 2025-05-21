@@ -12,10 +12,22 @@ interface CompleteAbsence {
 
     colaboratorId: string;
     statusId: string;
-    reviewerId: string;
+    reviewer: string;
     type: Enum_Absence_Type;
     justificationId: string | null;
 
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+interface Absence {
+    dbId: string;
+    colaboratorId: string;
+    reviewer: string;
+    startDate: Date;
+    endDate: Date;
+    valid: boolean;
+    
     createdAt: Date;
     updatedAt: Date;
 }
@@ -157,7 +169,7 @@ const absenceResolvers = {
         reviewer: async (parent: CompleteAbsence, args: null, context: OurContext) => {
             return await context.db.user.findUnique({
                 where: {
-                    id: parent.reviewerId,
+                    id: parent.reviewer,
                 },
             });
         },
@@ -174,21 +186,28 @@ const absenceResolvers = {
         },
     },
     Absence: {
-        colaborator: async (parent: { colaboratorId: string }, args: null, context: OurContext) => {
+        colaborator: async (parent: Absence, args: null, context: OurContext) => {
             return await context.db.user.findUnique({
                 where: {
                     id: parent.colaboratorId,
                 },
             });
         },
-        requestedAbsence: async (parent: { dbId: string }, args: null, context: OurContext) => {
+        reviewer: async (parent: Absence, args: null, context: OurContext) => {
+            return await context.db.user.findUnique({
+                where: {
+                    id: parent.reviewer
+                },
+            });
+        },
+        requestedAbsence: async (parent: Absence, args: null, context: OurContext) => {
             return await context.db.requestedAbsence.findUnique({
                 where: {
                     absenceId: parent.dbId,
                 },
             });
         },
-        spontaneousAbsence: async (parent: { dbId: string }, args: null, context: OurContext) => {
+        spontaneousAbsence: async (parent: Absence, args: null, context: OurContext) => {
             return await context.db.spontaneousAbsence.findUnique({
                 where: {
                     absenceId: parent.dbId,

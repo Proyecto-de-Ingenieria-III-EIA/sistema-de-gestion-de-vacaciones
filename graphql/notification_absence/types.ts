@@ -7,6 +7,7 @@ const notificationAbsenceTypes = gql`
         isForBoss: Boolean
         isForWorker: Boolean
         notificationMessage: String
+        hasBeenSeen: Boolean
 
         absence: Absence 
     }

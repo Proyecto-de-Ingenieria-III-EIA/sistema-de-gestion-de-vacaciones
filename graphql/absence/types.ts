@@ -13,11 +13,13 @@ const absenceTypes = gql`
         startDate: DateTime
         endDate: DateTime
         valid: Boolean
+        reviewer: ID
         
         createdAt: DateTime
         updatedAt: DateTime
 
         colaborator: User
+        reviewerObject: User
 
         requestedAbsence: RequestedAbsence
         spontaneousAbsence: SpontaneousAbsence

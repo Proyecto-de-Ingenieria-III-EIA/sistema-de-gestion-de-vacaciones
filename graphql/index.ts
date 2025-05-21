@@ -11,7 +11,7 @@ import { spontaneousAbsenceStatusThings, spontaneousAbsenceStatusResolvers } fro
 import { vacationAbsenceThings, vacationAbsenceResolvers } from "./vacation_absence/combiner";
 import { vacationPolicyThings, vacationPolicyResolvers } from "./vacation_policy/combiner";
 import { requestedAbsenceThings, requestedAbsenceResolvers } from "./requested_absence/combiner";
-import { notificationAbsenceThings } from "./notification_absence/combiner";
+import { notificationAbsenceThings, notificationAbsenceResolvers } from "./notification_absence/combiner";
 
 const defaultTypes = gql`
     scalar DateTime
@@ -46,6 +46,7 @@ const resolvers = [
     vacationAbsenceResolvers,
     vacationPolicyResolvers,
     requestedAbsenceResolvers,
+    notificationAbsenceResolvers,
 ];
 
 export {
