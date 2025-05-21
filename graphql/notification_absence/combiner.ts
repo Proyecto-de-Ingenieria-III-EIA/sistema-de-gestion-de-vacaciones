@@ -3,6 +3,6 @@ import { notificationAbsenceTypes } from './types';
 import { notificationAbsenceResolvers } from './resolvers';
 import { notificationAbsenceQueries } from './queries';
 
-const justificationThings = [notificationAbsenceMutations, notificationAbsenceTypes, notificationAbsenceQueries];
+const notificationAbsenceThings = [notificationAbsenceMutations, notificationAbsenceTypes, notificationAbsenceQueries];
 
-export { justificationThings, notificationAbsenceResolvers };
+export { notificationAbsenceThings, notificationAbsenceResolvers };

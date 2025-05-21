@@ -10,5 +10,5 @@ const notificationAbsenceTypes = gql`
 
         absence: Absence 
     }
-`
+`;
 export { notificationAbsenceTypes };

@@ -15,7 +15,7 @@ const notificationAbsenceResolvers = {
                 throw new AbsenceNotFoundError();
 
             if (input.forBoss) {
-                await db.absenceNotification.update({
+                return await db.absenceNotification.update({
                     where: {
                         absenceId: input.absenceId,
                     },
@@ -24,11 +24,9 @@ const notificationAbsenceResolvers = {
                         isForBoss: false,
                     },
                 });
-
-                return true;
             }
             
-            await db.absenceNotification.update({
+            return await db.absenceNotification.update({
                     where: {
                         absenceId: input.absenceId,
                     },
@@ -37,16 +35,13 @@ const notificationAbsenceResolvers = {
                         isForWorker: false,
                     },
                 });
-
-            return true;
-                
         }, 
         setAsUnseen: async (parent: null, input: { absenceId: string, forBoss: boolean }, { db }: OurContext) => {
             if ((await db.absence.count({ where: { dbId: input.absenceId }})) === 0)
                 throw new AbsenceNotFoundError();
 
             if (input.forBoss) {
-                await db.absenceNotification.update({
+                return await db.absenceNotification.update({
                     where: {
                         absenceId: input.absenceId,
                     },
@@ -55,11 +50,9 @@ const notificationAbsenceResolvers = {
                         isForBoss: true,
                     },
                 });
-
-                return true;
             }
             
-            await db.absenceNotification.update({
+            return await db.absenceNotification.update({
                     where: {
                         absenceId: input.absenceId,
                     },
@@ -68,9 +61,26 @@ const notificationAbsenceResolvers = {
                         isForWorker: true,
                     },
                 });
-
-            return true;
         }, 
+    },
+    Query: {
+        getUserNotifications: async (
+            parent: null,
+            { userId }: { userId: String },
+            { db }: OurContext
+        ) => {
+            return db.$queryRaw`
+                SELECT
+                    absence_notification.*
+                FROM
+                    "Absence" as absence
+                    INNER JOIN "Absence_Notification" as absence_notification
+                        ON absence.db_id = absence_notification.absence_id
+                WHERE
+                    absence."colaborator_id" = ${userId} OR absence."reviewer" = ${userId}
+                ;
+            `
+        },
     },
     Notification_Absence: {
         absence: async (parent: NotificationAbsence, 

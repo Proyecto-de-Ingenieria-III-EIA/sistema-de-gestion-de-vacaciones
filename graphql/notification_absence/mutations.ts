@@ -2,9 +2,8 @@ import gql from "graphql-tag";
 
 const notificationAbsenceMutations = gql`
     type Mutation{
-        updateNotificationAbsence(): Notification_Absence
-        setAsSeen(absenceId: ID, forBoss: Boolean): bool
-        setAsUnseen(absenceId: ID, forBoss: Boolean): bool
+        setAsSeen(absenceId: ID, forBoss: Boolean): Notification_Absence
+        setAsUnseen(absenceId: ID, forBoss: Boolean): Notification_Absence
     }
 `;
 
