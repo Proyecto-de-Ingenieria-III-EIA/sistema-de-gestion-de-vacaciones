@@ -1,4 +1,5 @@
 import { NotSufficentCredentialsError } from "@/errors/NotSufficentCredentialsError";
+import { UserNotFoundError } from "@/errors/UserNotFoundError";
 import { OurContext } from "@/graphql/context";
 import { User, Role, Enum_RoleName } from "@prisma/client";
 
@@ -54,7 +55,18 @@ const userResolvers = {
                     id: args.id,
                 }
             });
-        }
+        },
+
+        getSuborditesUser: async (parent: null, args: { userId: string }, { db }: OurContext) => {
+            if ((await db.user.count({ where: { id: args.userId } })) === 0)
+                throw new UserNotFoundError();
+
+            return await db.user.findMany({
+                where: {
+                    bossId: args.userId,
+                }
+            });
+        },
     },
 
     Mutation: {

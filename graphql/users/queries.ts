@@ -6,6 +6,7 @@ const userQueries = gql`
     getUserByEmail (email: String!): User
     getCurrentUser: User
     getUserById (id: String!): User
+    getSuborditesUser(userId: ID!): [User]
   }
 `
 
