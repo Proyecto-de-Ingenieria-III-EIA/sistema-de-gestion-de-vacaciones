@@ -11,13 +11,11 @@ import { AbsenceTypeDistributionChart } from "./abs-type-dist-chart"
 import { AbsencesByDepartmentChart } from "./abs-department-chart"
 import { AbsencesTrendChart } from "./abs-trend-chart"
 
-
 export default function DashboardPage() {
   const [historicalData, setHistoricalData] = useState<Record<string, any>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Simular carga de datos históricos
     const fetchData = async () => {
       setLoading(true)
       try {
@@ -33,7 +31,6 @@ export default function DashboardPage() {
     fetchData()
   }, [])
 
-  // Preparar datos para los gráficos
   const prepareChartData = () => {
     if (loading || Object.keys(historicalData).length === 0) {
       return {
@@ -44,17 +41,23 @@ export default function DashboardPage() {
       }
     }
 
-    // Datos para el gráfico mensual (últimos 6 meses)
     const now = new Date()
-    const monthlyData = []
+    const monthlyData: Array<{
+      month: string
+      total: number
+      vacation: number
+      spontaneous: number
+      informal: number
+    }> = []
 
+    // Últimos 6 meses: formato "MMM yy" (dic 24, ene 25...)
     for (let i = 5; i >= 0; i--) {
       const targetDate = subMonths(now, i)
-      const monthKey = `${targetDate.getFullYear()}-${targetDate.getMonth().toString().padStart(2, "0")}`
-      const absences = historicalData[monthKey] || []
+      const key = `${targetDate.getFullYear()}-${String(targetDate.getMonth()).padStart(2, "0")}`
+      const absences = historicalData[key] || []
 
       monthlyData.push({
-        month: format(targetDate, "MMM", { locale: es }),
+        month: format(targetDate, "MMM yy", { locale: es }),
         total: absences.length,
         vacation: absences.filter((a) => a.type === "VACATION").length,
         spontaneous: absences.filter((a) => a.type === "SPONTANEOUS").length,
@@ -101,15 +104,18 @@ export default function DashboardPage() {
     })
 
     // Datos para el gráfico de tendencia (12 meses)
-    const trendData = []
+    const trendData: Array<{
+      month: string
+      total: number
+    }> = []
 
     for (let i = 11; i >= 0; i--) {
       const targetDate = subMonths(now, i)
-      const monthKey = `${targetDate.getFullYear()}-${targetDate.getMonth().toString().padStart(2, "0")}`
-      const absences = historicalData[monthKey] || []
+      const key = `${targetDate.getFullYear()}-${String(targetDate.getMonth()).padStart(2, "0")}`
+      const absences = historicalData[key] || []
 
       trendData.push({
-        month: format(targetDate, "MMM", { locale: es }),
+        month: format(targetDate, "MMM yy", { locale: es }),
         total: absences.length,
       })
     }
@@ -181,7 +187,7 @@ export default function DashboardPage() {
                 <CardDescription>Distribución de ausencias por tipo en los últimos 6 meses</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[350px]">
+                <div className="h-[550px]">
                   {loading ? (
                     <div className="flex items-center justify-center h-full">
                       <p>Cargando datos...</p>

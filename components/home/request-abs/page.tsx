@@ -1,3 +1,4 @@
+// components/home/request-abs/page.tsx
 "use client"
 
 import { useState } from "react"
@@ -6,17 +7,43 @@ import { es } from "date-fns/locale"
 import { CalendarIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { getAllCollaborators } from "@/lib/mock-data"
+import { useMutation, useQuery } from "@apollo/client"
+import { GET_USERS } from "@/graphql/connections/post_request_abs/queries"
+import {
+  CREATE_REQUESTED_ABSENCE,
+  CREATE_SPONTANEOUS_ABSENCE,
+} from "@/graphql/connections/post_request_abs/mutations"
 
 const formSchema = z
   .object({
@@ -42,35 +69,76 @@ const formSchema = z
   })
 
 export default function RequestAbsencePage() {
+  // 1️⃣ Estado local
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const collaborators = getAllCollaborators()
 
+  // 2️⃣ Hook de formulario
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      reason: "",
-    },
+    defaultValues: { reason: "" },
   })
 
+  // 3️⃣ Mutaciones
+  const [createRequestedAbsence, { loading: reqLoading, error: reqError }] =
+    useMutation(CREATE_REQUESTED_ABSENCE)
+  const [createSpontaneousAbsence, { loading: spontLoading, error: spontError }] =
+    useMutation(CREATE_SPONTANEOUS_ABSENCE)
+
+  // 4️⃣ Query de usuarios (siempre después de los hooks anteriores)
+  const { data, loading: usersLoading, error: usersError } = useQuery(GET_USERS)
+  const collaborators = data?.getUsers ?? []
+
+  // 5️⃣ Early returns (ya no alteran el orden de hooks)
+  if (usersLoading) return <p>Cargando colaboradores…</p>
+  if (usersError) return <p>Error cargando colaboradores</p>
+
+  // 6️⃣ Función onSubmit
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true)
+    try {
+      if (values.type === "SPONTANEOUS") {
+        await createSpontaneousAbsence({
+          variables: {
+            inputs: {
+              colaboratorId: values.collaboratorId,
+              startDate: values.startDate.toISOString(),
+              endDate: values.endDate.toISOString(),
+              comments: values.reason,
+            },
+          },
+        })
+      } else {
+        await createRequestedAbsence({
+          variables: {
+            inputs: {
+              colaboratorId: values.collaboratorId,
+              startDate: values.startDate.toISOString(),
+              endDate: values.endDate.toISOString(),
+              isVacation: values.type === "VACATION",
+              description: values.type === "INFORMAL" ? values.reason : undefined,
+              mediaUrl: null,
+            },
+          },
+        })
+      }
 
-    // Simular envío a API GraphQL
-    console.log("Enviando solicitud:", values)
-
-    // Simular retraso de red
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    setIsSubmitting(false)
-
-    toast({
-      title: "Solicitud enviada",
-      description: "Tu solicitud de ausencia ha sido enviada para aprobación.",
-    })
-
-    form.reset()
+      toast({
+        title: "Solicitud enviada",
+        description: "Tu solicitud ha sido enviada para aprobación.",
+      })
+      form.reset()
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
+  // 7️⃣ Renderizado
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-2xl mx-auto">
@@ -78,28 +146,33 @@ export default function RequestAbsencePage() {
           <CardHeader>
             <CardTitle>Solicitar Ausencia</CardTitle>
             <CardDescription>
-              Complete el formulario para solicitar una ausencia. Su solicitud será enviada para aprobación.
+              Complete el formulario para solicitar una ausencia. Su solicitud será
+              enviada para aprobación.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Colaborador */}
                 <FormField
                   control={form.control}
                   name="collaboratorId"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Colaborador</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccione un colaborador" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {collaborators.map((collaborator) => (
-                            <SelectItem key={collaborator.id} value={collaborator.id}>
-                              {collaborator.name} - {collaborator.department}
+                          {collaborators.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -109,13 +182,17 @@ export default function RequestAbsencePage() {
                   )}
                 />
 
+                {/* Tipo de ausencia */}
                 <FormField
                   control={form.control}
                   name="type"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de Ausencia</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccione un tipo" />
@@ -127,13 +204,17 @@ export default function RequestAbsencePage() {
                           <SelectItem value="INFORMAL">Informal</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormDescription>Seleccione el tipo de ausencia que desea solicitar.</FormDescription>
+                      <FormDescription>
+                        Seleccione el tipo de ausencia que desea solicitar.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
+                {/* Fechas */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Fecha de Inicio */}
                   <FormField
                     control={form.control}
                     name="startDate"
@@ -144,14 +225,15 @@ export default function RequestAbsencePage() {
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                variant={"outline"}
-                                className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP", { locale: es })
-                                ) : (
-                                  <span>Seleccione una fecha</span>
+                                variant="outline"
+                                className={cn(
+                                  "pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
                                 )}
+                              >
+                                {field.value
+                                  ? format(field.value, "PPP", { locale: es })
+                                  : "Seleccione una fecha"}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </FormControl>
@@ -172,6 +254,7 @@ export default function RequestAbsencePage() {
                     )}
                   />
 
+                  {/* Fecha de Fin */}
                   <FormField
                     control={form.control}
                     name="endDate"
@@ -182,14 +265,15 @@ export default function RequestAbsencePage() {
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                variant={"outline"}
-                                className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP", { locale: es })
-                                ) : (
-                                  <span>Seleccione una fecha</span>
+                                variant="outline"
+                                className={cn(
+                                  "pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
                                 )}
+                              >
+                                {field.value
+                                  ? format(field.value, "PPP", { locale: es })
+                                  : "Seleccione una fecha"}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </FormControl>
@@ -200,7 +284,9 @@ export default function RequestAbsencePage() {
                               selected={field.value}
                               onSelect={field.onChange}
                               disabled={(date) =>
-                                date < new Date() || (form.getValues().startDate && date < form.getValues().startDate)
+                                date < new Date() ||
+                                (form.getValues().startDate &&
+                                  date < form.getValues().startDate)
                               }
                               initialFocus
                               locale={es}
@@ -213,6 +299,7 @@ export default function RequestAbsencePage() {
                   />
                 </div>
 
+                {/* Motivo */}
                 <FormField
                   control={form.control}
                   name="reason"
@@ -220,17 +307,37 @@ export default function RequestAbsencePage() {
                     <FormItem>
                       <FormLabel>Motivo</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Describa el motivo de su ausencia" className="resize-none" {...field} />
+                        <Textarea
+                          placeholder="Describa el motivo de su ausencia"
+                          className="resize-none"
+                          {...field}
+                        />
                       </FormControl>
-                      <FormDescription>Proporcione detalles sobre el motivo de su ausencia.</FormDescription>
+                      <FormDescription>
+                        Proporcione detalles sobre el motivo de su ausencia.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? "Enviando..." : "Enviar Solicitud"}
+                {/* Botón de envío */}
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitting || reqLoading || spontLoading}
+                >
+                  {isSubmitting || reqLoading || spontLoading
+                    ? "Enviando..."
+                    : "Enviar Solicitud"}
                 </Button>
+
+                {/* Errores de mutación */}
+                {(reqError || spontError) && (
+                  <p className="text-red-600 mt-2">
+                    {(reqError || spontError)?.message}
+                  </p>
+                )}
               </form>
             </Form>
           </CardContent>
