@@ -214,6 +214,13 @@ const absenceResolvers = {
                 },
             });
         },
+        reviewerObject: async (parent: Absence, args: null, context: OurContext) => {
+            return await context.db.user.findUnique({
+                where: {
+                    id: parent.reviewer,
+                },
+            });
+        },
     }
     
 };
