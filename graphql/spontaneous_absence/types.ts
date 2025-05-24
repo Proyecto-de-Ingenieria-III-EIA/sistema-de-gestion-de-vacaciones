@@ -23,11 +23,13 @@ const spontaneousAbsenceTypes = gql`
         createdById: ID
         comments: String
         statusId: ID
+        reviewer: ID
 
         colaborator: User
         createdBy: User
         absenceStatus: SpontaneousAbsenceStatus
         justification: Justification
+        reviewerObject: User
     }
 `;
 

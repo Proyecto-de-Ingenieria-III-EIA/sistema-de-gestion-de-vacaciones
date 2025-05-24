@@ -25,6 +25,7 @@ interface CompleteSpontaneousAbsence {
     createdById: string;
     comments: string;
     statusId: string;
+    reviewer: string;
 
     colaborator: User;
     createdBy: User;
@@ -103,6 +104,7 @@ const spontaneousAbsenceResolvers = {
                     createdById: absence.createdBy,
                     comments: absence.comments,
                     statusId: spontaneousAbsence.status,
+                    reviewer: absence.reviewer,
                 }
             });
         },
@@ -217,7 +219,6 @@ const spontaneousAbsenceResolvers = {
     },
     CompleteSpontaneousAbsence: {  
         colaborator: (parent: CompleteSpontaneousAbsence, args: null, context: OurContext) => {
-            console.log(parent);
             return context.db.user.findUnique({
                 where: {
                     id: parent.colaboratorId,
@@ -242,6 +243,13 @@ const spontaneousAbsenceResolvers = {
             return context.db.justification.findFirst({
                 where: {
                     absenceId: parent.dbId,
+                }
+            });
+        },
+        reviewerObject: (parent: CompleteSpontaneousAbsence, args: null, context: OurContext) => {
+            return context.db.user.findFirst({
+                where: {
+                    id: parent.reviewer,
                 }
             });
         },

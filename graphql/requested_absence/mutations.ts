@@ -12,7 +12,7 @@ const requestedAbsenceMutations = gql`
     }
 
     type Mutation{
-        createRequestedAbsence(inputs: RequestedAbsenceCreationInput): CompleteSpontaneousAbsence
+        createRequestedAbsence(inputs: RequestedAbsenceCreationInput): WholeRequestedAbsence
         makeDecisionRequestedAbsence(absenceId: String, decision: Enum_Requested_Absence_Status_Name): RequestedAbsence
     }
 `;
