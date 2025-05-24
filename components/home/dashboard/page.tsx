@@ -207,7 +207,7 @@ export default function DashboardPage() {
                 <CardDescription>Porcentaje de cada tipo de ausencia en los últimos 12 meses</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[350px]">
+                <div className="h-[550px]">
                   {loading ? (
                     <div className="flex items-center justify-center h-full">
                       <p>Cargando datos...</p>
@@ -227,7 +227,7 @@ export default function DashboardPage() {
                 <CardDescription>Distribución de ausencias por departamento</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[350px]">
+                <div className="h-[550px]">
                   {loading ? (
                     <div className="flex items-center justify-center h-full">
                       <p>Cargando datos...</p>
@@ -247,7 +247,7 @@ export default function DashboardPage() {
                 <CardDescription>Evolución del total de ausencias en los últimos 12 meses</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[350px]">
+                <div className="h-[550px]">
                   {loading ? (
                     <div className="flex items-center justify-center h-full">
                       <p>Cargando datos...</p>

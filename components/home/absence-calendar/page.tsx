@@ -51,7 +51,7 @@ export default function AbsenceCalendarPage() {
 
   absences.forEach((absence) => {
     const collaboratorId = absence.colaborator.id
-    //debugginh
+    //debugging
     const collaboratorName = absence.colaborator.name
 
     if (!collaboratorsMap.has(collaboratorId)) {
