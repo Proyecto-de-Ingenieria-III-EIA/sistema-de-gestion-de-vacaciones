@@ -1,121 +1,139 @@
+/* components/home/mailbox/page.tsx */
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
+import { useQuery, useMutation } from "@apollo/client"
 import { format, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
 import { Check, Clock, Inbox, MailX, X } from "lucide-react"
+
+import {
+  GET_PENDING_REQUESTED_ABSENCES,
+} from "@/graphql/connections/mailbox/queries"
+import { DECIDE_REQUESTED_ABSENCE } from "@/graphql/connections/mailbox/mutations"
+
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  // CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { getPendingRequests, getCollaboratorById, type Absence } from "@/lib/mock-data"
 import { toast } from "@/hooks/use-toast"
 
+/* ------------------------------------------------------------------ */
+/* Tipado mínimo para mantener autocompletado sin codegen             */
+/* ------------------------------------------------------------------ */
+type Absence = {
+  dbId: string
+  startDate: string
+  endDate: string
+  type: "VACATION" | "SPONTANEOUS" | "INFORMAL"
+  colaborator: { id: string; name: string | null }
+  justification?: { description?: string | null }
+}
+
 export default function MailboxPage() {
+  /* 1️⃣  Query: solicitudes pendientes */
+  const { data, loading, error } = useQuery(GET_PENDING_REQUESTED_ABSENCES)
+
+  /* 2️⃣  Estado local para las pestañas */
   const [pendingRequests, setPendingRequests] = useState<Absence[]>([])
-  const [loading, setLoading] = useState(true)
   const [approvedRequests, setApprovedRequests] = useState<Absence[]>([])
   const [rejectedRequests, setRejectedRequests] = useState<Absence[]>([])
 
+  /* Rellenar pendientes cuando llega la data */
   useEffect(() => {
-    const fetchRequests = async () => {
-      setLoading(true)
-      try {
-        const data = await getPendingRequests()
-        setPendingRequests(data)
-      } catch (error) {
-        console.error("Error fetching pending requests:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
+    if (data?.getPendingRequestedAbsences)
+      setPendingRequests(data.getPendingRequestedAbsences)
+  }, [data])
 
-    fetchRequests()
-  }, [])
+  /* 3️⃣  Mutación aprobar / rechazar */
+  const [decideRequestedAbsence] = useMutation(DECIDE_REQUESTED_ABSENCE)
 
-  const handleApprove = (request: Absence) => {
-    // Actualizar estado local (en una app real, esto sería una llamada a la API)
-    const updatedRequest = { ...request, status: "APPROVED" as const }
-    setPendingRequests(pendingRequests.filter((r) => r.id !== request.id))
-    setApprovedRequests([...approvedRequests, updatedRequest])
+  async function handleDecision(request: Absence, decision: "APROVED" | "REJECTED") {
+    try {
+      await decideRequestedAbsence({
+        variables: { absenceId: request.dbId, decision },
+      })
 
-    toast({
-      title: "Solicitud aprobada",
-      description: "La solicitud ha sido aprobada exitosamente.",
-    })
-  }
+      setPendingRequests(prev => prev.filter(r => r.dbId !== request.dbId))
+      if (decision === "APROVED")
+        setApprovedRequests(prev => [...prev, request])
+      else
+        setRejectedRequests(prev => [...prev, request])
 
-  const handleReject = (request: Absence) => {
-    // Actualizar estado local (en una app real, esto sería una llamada a la API)
-    const updatedRequest = { ...request, status: "REJECTED" as const }
-    setPendingRequests(pendingRequests.filter((r) => r.id !== request.id))
-    setRejectedRequests([...rejectedRequests, updatedRequest])
-
-    toast({
-      title: "Solicitud rechazada",
-      description: "La solicitud ha sido rechazada.",
-    })
-  }
-
-  // Función para obtener el texto del tipo de ausencia
-  const getAbsenceTypeText = (type: string) => {
-    switch (type) {
-      case "VACATION":
-        return "Vacaciones"
-      case "SPONTANEOUS":
-        return "Espontánea"
-      case "INFORMAL":
-        return "Informal"
-      default:
-        return type
+      toast({
+        title: `Solicitud ${decision === "APROVED" ? "aprobada" : "rechazada"}`,
+      })
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Error", description: e.message })
     }
   }
 
-  // Función para renderizar una solicitud
-  const renderRequest = (request: Absence, actions = true) => {
-    const collaborator = getCollaboratorById(request.collaboratorId)
-
-    if (!collaborator) return null
-
+  /* 4️⃣ Render de cada tarjeta */
+  function renderRequest(request: Absence, actions = true) {
+    const { colaborator } = request
     return (
-      <Card key={request.id} className="mb-4">
+      <Card key={request.dbId} className="mb-4">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle className="text-lg">{collaborator.name}</CardTitle>
-              <CardDescription>{collaborator.department}</CardDescription>
+              <CardTitle className="text-lg">{colaborator.name}</CardTitle>
+              {/* <CardDescription>
+                {colaborator.department ?? "NA department"}
+              </CardDescription> */}
             </div>
             <Badge
               variant={
-                request.type === "VACATION" ? "default" : request.type === "INFORMAL" ? "secondary" : "destructive"
+                request.type === "VACATION"
+                  ? "default"
+                  : request.type === "INFORMAL"
+                  ? "secondary"
+                  : "destructive"
               }
             >
-              {getAbsenceTypeText(request.type)}
+              {request.type === "VACATION"
+                ? "Vacaciones"
+                : request.type === "SPONTANEOUS"
+                ? "Espontánea"
+                : "Informal"}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="pb-2">
-          <div className="space-y-2">
-            <div className="flex items-center text-sm">
-              <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-              <span>
-                {format(parseISO(request.startDate), "PPP", { locale: es })} -{" "}
-                {format(parseISO(request.endDate), "PPP", { locale: es })}
-              </span>
-            </div>
-            <div className="text-sm">
-              <strong>Motivo:</strong> {request.reason}
-            </div>
+
+        <CardContent className="pb-2 space-y-2">
+          <div className="flex items-center text-sm">
+            <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+            <span>
+              {format(parseISO(request.startDate), "PPP", { locale: es })} –{" "}
+              {format(parseISO(request.endDate), "PPP", { locale: es })}
+            </span>
           </div>
+
+          {request.justification?.description && (
+            <p className="text-sm">
+              <strong>Motivo:</strong> {request.justification.description}
+            </p>
+          )}
         </CardContent>
+
         {actions && (
           <CardFooter className="flex justify-end space-x-2 pt-2">
-            <Button variant="outline" size="sm" onClick={() => handleReject(request)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleDecision(request, "REJECTED")}
+            >
               <X className="mr-2 h-4 w-4" />
               Rechazar
             </Button>
-            <Button size="sm" onClick={() => handleApprove(request)}>
+            <Button size="sm" onClick={() => handleDecision(request, "APROVED")}>
               <Check className="mr-2 h-4 w-4" />
               Aprobar
             </Button>
@@ -125,6 +143,9 @@ export default function MailboxPage() {
     )
   }
 
+  /* ------------------------------------------------------------------ */
+  /* UI principal                                                       */
+  /* ------------------------------------------------------------------ */
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-4xl mx-auto">
@@ -132,6 +153,8 @@ export default function MailboxPage() {
           <Inbox className="h-6 w-6 mr-2" />
           <h1 className="text-2xl font-bold">Bandeja de Aprobaciones</h1>
         </div>
+
+        {error && <p className="text-red-600 mb-4">{error.message}</p>}
 
         <Tabs defaultValue="pending" className="space-y-6">
           <TabsList>
@@ -164,65 +187,76 @@ export default function MailboxPage() {
             </TabsTrigger>
           </TabsList>
 
+          {/* ---------- Pendientes ---------- */}
           <TabsContent value="pending">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium">Solicitudes Pendientes</h2>
-              </div>
-              <Separator />
-
-              {loading ? (
-                <div className="py-8 text-center">
-                  <p>Cargando solicitudes...</p>
-                </div>
-              ) : pendingRequests.length === 0 ? (
-                <div className="py-8 text-center">
-                  <MailX className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <p className="mt-2 text-muted-foreground">No hay solicitudes pendientes</p>
-                </div>
-              ) : (
-                <div>{pendingRequests.map((request) => renderRequest(request))}</div>
-              )}
-            </div>
+            <Section
+              title="Solicitudes Pendientes"
+              loading={loading}
+              empty={pendingRequests.length === 0}
+            >
+              {pendingRequests.map(req => renderRequest(req))}
+            </Section>
           </TabsContent>
 
+          {/* ---------- Aprobadas ---------- */}
           <TabsContent value="approved">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium">Solicitudes Aprobadas</h2>
-              </div>
-              <Separator />
-
-              {approvedRequests.length === 0 ? (
-                <div className="py-8 text-center">
-                  <MailX className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <p className="mt-2 text-muted-foreground">No hay solicitudes aprobadas</p>
-                </div>
-              ) : (
-                <div>{approvedRequests.map((request) => renderRequest(request, false))}</div>
-              )}
-            </div>
+            <Section
+              title="Solicitudes Aprobadas"
+              loading={false}
+              empty={approvedRequests.length === 0}
+            >
+              {approvedRequests.map(req => renderRequest(req, false))}
+            </Section>
           </TabsContent>
 
+          {/* ---------- Rechazadas ---------- */}
           <TabsContent value="rejected">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium">Solicitudes Rechazadas</h2>
-              </div>
-              <Separator />
-
-              {rejectedRequests.length === 0 ? (
-                <div className="py-8 text-center">
-                  <MailX className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <p className="mt-2 text-muted-foreground">No hay solicitudes rechazadas</p>
-                </div>
-              ) : (
-                <div>{rejectedRequests.map((request) => renderRequest(request, false))}</div>
-              )}
-            </div>
+            <Section
+              title="Solicitudes Rechazadas"
+              loading={false}
+              empty={rejectedRequests.length === 0}
+            >
+              {rejectedRequests.map(req => renderRequest(req, false))}
+            </Section>
           </TabsContent>
         </Tabs>
       </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Sub-componente reutilizable                                         */
+/* ------------------------------------------------------------------ */
+function Section({
+  title,
+  loading,
+  empty,
+  children,
+}: {
+  title: string
+  loading: boolean
+  empty: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-medium">{title}</h2>
+      </div>
+      <Separator />
+      {loading ? (
+        <div className="py-8 text-center">
+          <p>Cargando solicitudes…</p>
+        </div>
+      ) : empty ? (
+        <div className="py-8 text-center">
+          <MailX className="mx-auto h-12 w-12 text-muted-foreground" />
+          <p className="mt-2 text-muted-foreground">No hay elementos</p>
+        </div>
+      ) : (
+        <div>{children}</div>
+      )}
     </div>
   )
 }

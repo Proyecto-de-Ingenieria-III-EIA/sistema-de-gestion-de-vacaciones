@@ -1,12 +1,18 @@
-// components/home/request-abs/page.tsx
+/* components/home/request-abs/page.tsx */
 "use client"
 
 import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { CalendarIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
+import { CalendarIcon, UploadCloud } from "lucide-react"
+import { useMutation, useQuery } from "@apollo/client"
+
+import { cn } from "@/lib/utils"
+import { toast } from "@/hooks/use-toast"
+
 import {
   Card,
   CardContent,
@@ -15,16 +21,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import {
   Form,
-  FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
+  FormControl,
+  FormDescription,
 } from "@/components/ui/form"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -32,71 +39,95 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/hooks/use-toast"
-import { cn } from "@/lib/utils"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { useMutation, useQuery } from "@apollo/client"
-import { GET_USERS } from "@/graphql/connections/post_request_abs/queries"
-import {
-  CREATE_REQUESTED_ABSENCE,
-  CREATE_SPONTANEOUS_ABSENCE,
-} from "@/graphql/connections/post_request_abs/mutations"
+import { Input } from "@/components/ui/input"
 
+import {
+  GET_USERS,
+  GET_ME, // para fijar colaboradorId automáticamente
+} from "@/graphql/connections/post_request_abs/queries"
+
+
+import { CREATE_REQUESTED_ABSENCE_FOR_POST } from "@/graphql/connections/post_request_abs/mutations"
+import { CREATE_SPONTANEOUS_ABSENCE_FOR_POST } from "@/graphql/connections/post_request_abs/mutations"
+
+/* ------------------------------------------------------------------ */
+/* 1️⃣  Esquema de validación (Zod)                                   */
+/* ------------------------------------------------------------------ */
 const formSchema = z
   .object({
     collaboratorId: z.string({
       required_error: "Por favor seleccione un colaborador",
     }),
     type: z.enum(["VACATION", "SPONTANEOUS", "INFORMAL"], {
-      required_error: "Por favor seleccione un tipo de ausencia",
+      required_error: "Seleccione un tipo de ausencia",
     }),
     startDate: z.date({
-      required_error: "Por favor seleccione una fecha de inicio",
+      required_error: "Seleccione la fecha de inicio",
     }),
     endDate: z.date({
-      required_error: "Por favor seleccione una fecha de fin",
+      required_error: "Seleccione la fecha de fin",
     }),
-    reason: z.string().min(5, {
-      message: "El motivo debe tener al menos 5 caracteres",
-    }),
+    reason: z
+      .string()
+      .min(5, { message: "El motivo debe tener al menos 5 caracteres" }),
+    file: z
+      .instanceof(File)
+      .optional()
+      .or(z.literal(null)), // para permitir no adjuntar
   })
   .refine((data) => data.endDate >= data.startDate, {
     message: "La fecha de fin debe ser posterior o igual a la fecha de inicio",
     path: ["endDate"],
   })
 
+type FormValues = z.infer<typeof formSchema>
+
+/* ------------------------------------------------------------------ */
+/* 2️⃣  Componente principal                                          */
+/* ------------------------------------------------------------------ */
 export default function RequestAbsencePage() {
-  // 1️⃣ Estado local
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // 2️⃣ Hook de formulario
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { reason: "" },
+  /* --- 2.1  Query de usuarios (para el select) --- */
+  /*     Si prefieres NO mostrar el select y usar el propio userId,   */
+  /*     puedes omitir GET_USERS y tomar 'me.id' de GET_ME.           */
+  const { data: usersData, loading: usersLoading, error: usersError } =
+    useQuery(GET_USERS)
+
+  const { data: meData } = useQuery(GET_ME) // opcional
+  
+  const collaborators = usersData?.getUsers ?? []
+
+  /* --- 2.2  Mutaciones --- */
+  const [createRequestedAbsence] = useMutation(CREATE_REQUESTED_ABSENCE_FOR_POST, {
+    /* refetch la bandeja del boss si la tienes en caché */
+    refetchQueries: ["GetPendingRequestedAbsences"],
   })
 
-  // 3️⃣ Mutaciones
-  const [createRequestedAbsence, { loading: reqLoading, error: reqError }] =
-    useMutation(CREATE_REQUESTED_ABSENCE)
-  const [createSpontaneousAbsence, { loading: spontLoading, error: spontError }] =
-    useMutation(CREATE_SPONTANEOUS_ABSENCE)
+  const [createSpontaneousAbsence] = useMutation(CREATE_SPONTANEOUS_ABSENCE_FOR_POST, {
+    refetchQueries: ["GetPendingRequestedAbsences"],
+  })
 
-  // 4️⃣ Query de usuarios (siempre después de los hooks anteriores)
-  const { data, loading: usersLoading, error: usersError } = useQuery(GET_USERS)
-  const collaborators = data?.getUsers ?? []
+  /* --- 2.3  Form Hook --- */
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      collaboratorId: meData?.me?.id ?? "", // autoselecciona si quieres
+      reason: "",
+      file: null,
+    },
+  })
 
-  // 5️⃣ Early returns (ya no alteran el orden de hooks)
-  if (usersLoading) return <p>Cargando colaboradores…</p>
-  if (usersError) return <p>Error cargando colaboradores</p>
-
-  // 6️⃣ Función onSubmit
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  /* ---------------------------------------------------------------- */
+  /* 3️⃣  onSubmit – decide qué mutación llamar                        */
+  /* ---------------------------------------------------------------- */
+  async function onSubmit(values: FormValues) {
     setIsSubmitting(true)
     try {
       if (values.type === "SPONTANEOUS") {
+        /* ------------ 3A · Ausencia espontánea ------------ */
         await createSpontaneousAbsence({
           variables: {
             inputs: {
@@ -108,6 +139,15 @@ export default function RequestAbsencePage() {
           },
         })
       } else {
+        /* ------------ 3B · Requested (vacaciones o informal) ------------ */
+        /* Si es INFORMAL, enviamos descripción + media; si no, solo flag */
+        let mediaUrl: string | null = null
+        if (values.file && values.type === "INFORMAL") {
+          /* Sube el archivo a tu storage y obtén la URL;            */
+          /* para demo, lo dejamos null. Implementa tu upload aquí. */
+          mediaUrl = null
+        }
+
         await createRequestedAbsence({
           variables: {
             inputs: {
@@ -115,8 +155,9 @@ export default function RequestAbsencePage() {
               startDate: values.startDate.toISOString(),
               endDate: values.endDate.toISOString(),
               isVacation: values.type === "VACATION",
-              description: values.type === "INFORMAL" ? values.reason : undefined,
-              mediaUrl: null,
+              description:
+                values.type === "INFORMAL" ? values.reason : undefined,
+              mediaUrl,
             },
           },
         })
@@ -124,7 +165,7 @@ export default function RequestAbsencePage() {
 
       toast({
         title: "Solicitud enviada",
-        description: "Tu solicitud ha sido enviada para aprobación.",
+        description: "Tu ausencia ha sido registrada y pasará a revisión.",
       })
       form.reset()
     } catch (error: any) {
@@ -138,7 +179,12 @@ export default function RequestAbsencePage() {
     }
   }
 
-  // 7️⃣ Renderizado
+  /* ---------------------------------------------------------------- */
+  /* 4️⃣  Render                                                       */
+  /* ---------------------------------------------------------------- */
+  if (usersLoading) return <p>Cargando colaboradores…</p>
+  if (usersError) return <p>Error cargando colaboradores</p>
+
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-2xl mx-auto">
@@ -146,14 +192,14 @@ export default function RequestAbsencePage() {
           <CardHeader>
             <CardTitle>Solicitar Ausencia</CardTitle>
             <CardDescription>
-              Complete el formulario para solicitar una ausencia. Su solicitud será
-              enviada para aprobación.
+              Complete el formulario. Su solicitud será enviada para aprobación.
             </CardDescription>
           </CardHeader>
+
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {/* Colaborador */}
+                {/* -------- 4.1  Selección de colaborador -------- */}
                 <FormField
                   control={form.control}
                   name="collaboratorId"
@@ -170,7 +216,7 @@ export default function RequestAbsencePage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {collaborators.map((c) => (
+                          {collaborators.map((c: any) => (
                             <SelectItem key={c.id} value={c.id}>
                               {c.name}
                             </SelectItem>
@@ -182,7 +228,7 @@ export default function RequestAbsencePage() {
                   )}
                 />
 
-                {/* Tipo de ausencia */}
+                {/* -------- 4.2  Tipo de ausencia -------- */}
                 <FormField
                   control={form.control}
                   name="type"
@@ -204,102 +250,31 @@ export default function RequestAbsencePage() {
                           <SelectItem value="INFORMAL">Informal</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormDescription>
-                        Seleccione el tipo de ausencia que desea solicitar.
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* Fechas */}
+                {/* -------- 4.3  Fechas -------- */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Fecha de Inicio */}
-                  <FormField
+                  {/* Fecha inicio */}
+                  <DatePicker
                     control={form.control}
                     name="startDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Fecha de Inicio</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value
-                                  ? format(field.value, "PPP", { locale: es })
-                                  : "Seleccione una fecha"}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) => date < new Date()}
-                              initialFocus
-                              locale={es}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Fecha de Inicio"
+                    minDate={new Date()}
                   />
-
-                  {/* Fecha de Fin */}
-                  <FormField
+                  {/* Fecha fin */}
+                  <DatePicker
                     control={form.control}
                     name="endDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Fecha de Fin</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value
-                                  ? format(field.value, "PPP", { locale: es })
-                                  : "Seleccione una fecha"}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) =>
-                                date < new Date() ||
-                                (form.getValues().startDate &&
-                                  date < form.getValues().startDate)
-                              }
-                              initialFocus
-                              locale={es}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Fecha de Fin"
+                    /* Solo deja elegir >= startDate */
+                    minDate={form.watch("startDate") ?? new Date()}
                   />
                 </div>
 
-                {/* Motivo */}
+                {/* -------- 4.4  Motivo -------- */}
                 <FormField
                   control={form.control}
                   name="reason"
@@ -314,40 +289,123 @@ export default function RequestAbsencePage() {
                         />
                       </FormControl>
                       <FormDescription>
-                        Proporcione detalles sobre el motivo de su ausencia.
+                        Proporcione detalles (requerido para ausencias
+                        informales y espontáneas).
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* Botón de envío */}
+                {/* -------- 4.5  Evidencia (solo INFORMAL) -------- */}
+                {form.watch("type") === "INFORMAL" && (
+                  <FormField
+                    control={form.control}
+                    name="file"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Evidencia opcional (imagen / PDF)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            accept="image/*,application/pdf"
+                            onChange={(e) => {
+                              field.onChange(e.target.files?.[0] ?? null)
+                            }}
+                          />
+                        </FormControl>
+                        {field.value && (
+                          <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+                            <UploadCloud size={14} />
+                            {field.value.name}
+                          </p>
+                        )}
+                        <FormDescription>
+                          Adjunte justificante si lo considera necesario.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* -------- 4.6  Botón de envío -------- */}
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isSubmitting || reqLoading || spontLoading}
+                  disabled={isSubmitting}
                 >
-                  {isSubmitting || reqLoading || spontLoading
-                    ? "Enviando..."
-                    : "Enviar Solicitud"}
+                  {isSubmitting ? "Enviando…" : "Enviar Solicitud"}
                 </Button>
-
-                {/* Errores de mutación */}
-                {(reqError || spontError) && (
-                  <p className="text-red-600 mt-2">
-                    {(reqError || spontError)?.message}
-                  </p>
-                )}
               </form>
             </Form>
           </CardContent>
+
           <CardFooter className="flex justify-between border-t pt-6">
             <p className="text-sm text-muted-foreground">
-              Las solicitudes son revisadas generalmente en un plazo de 24-48 horas.
+              Las solicitudes suelen revisarse en un plazo de 24-48 h.
             </p>
           </CardFooter>
         </Card>
       </div>
     </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* 5️⃣  Sub-componente DatePicker reutilizable                         */
+/* ------------------------------------------------------------------ */
+import type { Control } from "react-hook-form"
+
+function DatePicker({
+  control,
+  name,
+  label,
+  minDate,
+}: {
+  control: Control<FormValues>
+  name: "startDate" | "endDate"
+  label: string
+  minDate: Date
+}) {
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col">
+          <FormLabel>{label}</FormLabel>
+          <Popover>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "pl-3 text-left font-normal",
+                    !field.value && "text-muted-foreground"
+                  )}
+                >
+                  {field.value
+                    ? format(field.value, "PPP", { locale: es })
+                    : "Seleccione una fecha"}
+                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={field.value}
+                onSelect={field.onChange}
+                disabled={(date) => date < minDate}
+                initialFocus
+                locale={es}
+              />
+            </PopoverContent>
+          </Popover>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   )
 }

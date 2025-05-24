@@ -11,6 +11,15 @@ export const GET_USERS = gql`
   }
 `
 
+export const GET_ME = gql`
+  query getCurrentUser {
+    getCurrentUser {
+      id
+      name
+    }
+  }
+`
+
 
 export const GET_ABSENCES_TIME_PERIOD_FOR_DASHBOARD = gql`
   query GetAbsencesTimePeriod($startDate: DateTime!, $endDate: DateTime!) {
