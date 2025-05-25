@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { CalendarIcon, UploadCloud } from "lucide-react"
+import { CalendarIcon, Link } from "lucide-react"
 import { useMutation, useQuery } from "@apollo/client"
 
 import { cn } from "@/lib/utils"
@@ -45,15 +45,13 @@ import { Input } from "@/components/ui/input"
 
 import {
   GET_USERS,
-  GET_ME, // para fijar colaboradorId automáticamente
+  GET_ME,
 } from "@/graphql/connections/post_request_abs/queries"
 
-
-import { CREATE_REQUESTED_ABSENCE_FOR_POST } from "@/graphql/connections/post_request_abs/mutations"
-import { CREATE_SPONTANEOUS_ABSENCE_FOR_POST } from "@/graphql/connections/post_request_abs/mutations"
+import { CREATE_REQUESTED_ABSENCE_FOR_POST, CREATE_SPONTANEOUS_ABSENCE_FOR_POST } from "@/graphql/connections/post_request_abs/mutations"
 
 /* ------------------------------------------------------------------ */
-/* 1️⃣  Esquema de validación (Zod)                                   */
+/* 1️⃣  Esquema de validación                                          */
 /* ------------------------------------------------------------------ */
 const formSchema = z
   .object({
@@ -72,10 +70,11 @@ const formSchema = z
     reason: z
       .string()
       .min(5, { message: "El motivo debe tener al menos 5 caracteres" }),
-    file: z
-      .instanceof(File)
+    mediaUrl: z
+      .string()
+      .url("Debe ser una URL válida")
       .optional()
-      .or(z.literal(null)), // para permitir no adjuntar
+      .or(z.literal("")),
   })
   .refine((data) => data.endDate >= data.startDate, {
     message: "La fecha de fin debe ser posterior o igual a la fecha de inicio",
@@ -85,49 +84,41 @@ const formSchema = z
 type FormValues = z.infer<typeof formSchema>
 
 /* ------------------------------------------------------------------ */
-/* 2️⃣  Componente principal                                          */
+/* 2️⃣  Componente                                                     */
 /* ------------------------------------------------------------------ */
 export default function RequestAbsencePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  /* --- 2.1  Query de usuarios (para el select) --- */
-  /*     Si prefieres NO mostrar el select y usar el propio userId,   */
-  /*     puedes omitir GET_USERS y tomar 'me.id' de GET_ME.           */
+  /* --- Usuarios para el select --- */
   const { data: usersData, loading: usersLoading, error: usersError } =
     useQuery(GET_USERS)
-
-  const { data: meData } = useQuery(GET_ME) // opcional
-  
+  const { data: meData } = useQuery(GET_ME)
   const collaborators = usersData?.getUsers ?? []
 
-  /* --- 2.2  Mutaciones --- */
+  /* --- Mutaciones --- */
   const [createRequestedAbsence] = useMutation(CREATE_REQUESTED_ABSENCE_FOR_POST, {
-    /* refetch la bandeja del boss si la tienes en caché */
     refetchQueries: ["GetPendingRequestedAbsences"],
   })
-
   const [createSpontaneousAbsence] = useMutation(CREATE_SPONTANEOUS_ABSENCE_FOR_POST, {
     refetchQueries: ["GetPendingRequestedAbsences"],
   })
 
-  /* --- 2.3  Form Hook --- */
+  /* --- Form hook --- */
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      collaboratorId: meData?.me?.id ?? "", // autoselecciona si quieres
-      reason: "",
-      file: null,
+      collaboratorId: meData?.me?.id ?? "",
+      mediaUrl: "",
     },
   })
 
   /* ---------------------------------------------------------------- */
-  /* 3️⃣  onSubmit – decide qué mutación llamar                        */
+  /* 3️⃣  Submit                                                       */
   /* ---------------------------------------------------------------- */
   async function onSubmit(values: FormValues) {
     setIsSubmitting(true)
     try {
       if (values.type === "SPONTANEOUS") {
-        /* ------------ 3A · Ausencia espontánea ------------ */
         await createSpontaneousAbsence({
           variables: {
             inputs: {
@@ -139,15 +130,6 @@ export default function RequestAbsencePage() {
           },
         })
       } else {
-        /* ------------ 3B · Requested (vacaciones o informal) ------------ */
-        /* Si es INFORMAL, enviamos descripción + media; si no, solo flag */
-        let mediaUrl: string | null = null
-        if (values.file && values.type === "INFORMAL") {
-          /* Sube el archivo a tu storage y obtén la URL;            */
-          /* para demo, lo dejamos null. Implementa tu upload aquí. */
-          mediaUrl = null
-        }
-
         await createRequestedAbsence({
           variables: {
             inputs: {
@@ -155,9 +137,11 @@ export default function RequestAbsencePage() {
               startDate: values.startDate.toISOString(),
               endDate: values.endDate.toISOString(),
               isVacation: values.type === "VACATION",
-              description:
-                values.type === "INFORMAL" ? values.reason : undefined,
-              mediaUrl,
+              description: values.reason,          // siempre enviamos descripción
+              mediaUrl:
+                values.type === "INFORMAL" && values.mediaUrl
+                  ? values.mediaUrl
+                  : null,
             },
           },
         })
@@ -192,14 +176,14 @@ export default function RequestAbsencePage() {
           <CardHeader>
             <CardTitle>Solicitar Ausencia</CardTitle>
             <CardDescription>
-              Complete el formulario. Su solicitud será enviada para aprobación.
+              Completa el formulario y tu solicitud será enviada para aprobación.
             </CardDescription>
           </CardHeader>
 
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {/* -------- 4.1  Selección de colaborador -------- */}
+                {/* Colaborador */}
                 <FormField
                   control={form.control}
                   name="collaboratorId"
@@ -228,7 +212,7 @@ export default function RequestAbsencePage() {
                   )}
                 />
 
-                {/* -------- 4.2  Tipo de ausencia -------- */}
+                {/* Tipo de ausencia */}
                 <FormField
                   control={form.control}
                   name="type"
@@ -255,26 +239,23 @@ export default function RequestAbsencePage() {
                   )}
                 />
 
-                {/* -------- 4.3  Fechas -------- */}
+                {/* Fechas */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Fecha inicio */}
                   <DatePicker
                     control={form.control}
                     name="startDate"
                     label="Fecha de Inicio"
                     minDate={new Date()}
                   />
-                  {/* Fecha fin */}
                   <DatePicker
                     control={form.control}
                     name="endDate"
                     label="Fecha de Fin"
-                    /* Solo deja elegir >= startDate */
                     minDate={form.watch("startDate") ?? new Date()}
                   />
                 </div>
 
-                {/* -------- 4.4  Motivo -------- */}
+                {/* Motivo */}
                 <FormField
                   control={form.control}
                   name="reason"
@@ -289,39 +270,30 @@ export default function RequestAbsencePage() {
                         />
                       </FormControl>
                       <FormDescription>
-                        Proporcione detalles (requerido para ausencias
-                        informales y espontáneas).
+                        Este campo es obligatorio para todos los tipos.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* -------- 4.5  Evidencia (solo INFORMAL) -------- */}
+                {/* Evidencia URL (solo INFORMAL) */}
                 {form.watch("type") === "INFORMAL" && (
                   <FormField
                     control={form.control}
-                    name="file"
+                    name="mediaUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Evidencia opcional (imagen / PDF)</FormLabel>
+                        <FormLabel>Evidencia (URL)</FormLabel>
                         <FormControl>
                           <Input
-                            type="file"
-                            accept="image/*,application/pdf"
-                            onChange={(e) => {
-                              field.onChange(e.target.files?.[0] ?? null)
-                            }}
+                            placeholder="https://ejemplo.com/documento.pdf"
+                            // icon={<Link size={16} />}
+                            {...field}
                           />
                         </FormControl>
-                        {field.value && (
-                          <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
-                            <UploadCloud size={14} />
-                            {field.value.name}
-                          </p>
-                        )}
                         <FormDescription>
-                          Adjunte justificante si lo considera necesario.
+                          Puedes adjuntar un enlace (imagen, video, PDF, etc.).
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -329,12 +301,8 @@ export default function RequestAbsencePage() {
                   />
                 )}
 
-                {/* -------- 4.6  Botón de envío -------- */}
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
+                {/* Botón */}
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? "Enviando…" : "Enviar Solicitud"}
                 </Button>
               </form>
@@ -343,7 +311,7 @@ export default function RequestAbsencePage() {
 
           <CardFooter className="flex justify-between border-t pt-6">
             <p className="text-sm text-muted-foreground">
-              Las solicitudes suelen revisarse en un plazo de 24-48 h.
+              Las solicitudes suelen revisarse en 24-48 h.
             </p>
           </CardFooter>
         </Card>
@@ -353,7 +321,7 @@ export default function RequestAbsencePage() {
 }
 
 /* ------------------------------------------------------------------ */
-/* 5️⃣  Sub-componente DatePicker reutilizable                         */
+/* Sub-componente DatePicker                                          */
 /* ------------------------------------------------------------------ */
 import type { Control } from "react-hook-form"
 
