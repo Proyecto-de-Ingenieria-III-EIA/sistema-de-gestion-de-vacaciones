@@ -1,4 +1,3 @@
-/* components/home/dashboard/page.tsx */
 "use client"
 
 import { useQuery } from "@apollo/client"

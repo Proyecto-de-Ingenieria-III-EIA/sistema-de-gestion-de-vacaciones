@@ -1,4 +1,3 @@
-/* components/home/request-abs/page.tsx */
 "use client"
 
 import { useState } from "react"

@@ -6,7 +6,6 @@ import { Enum_RoleName, PrismaClient } from '@prisma/client';
 import { OurContext } from '@/graphql/context';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { FailedAuthError } from '@/errors/FailedAuthError';
-import { CustomErrorInterface } from '@/errors/CustomErrorInterface';
 
 const prisma = new PrismaClient();
 

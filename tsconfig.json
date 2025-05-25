@@ -32,7 +32,8 @@
     "**/*.ts",
     "**/*.tsx",
     "next-env.d.ts",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "next-auth.d.ts"
 , "components/home/absence/utils"  ],
   "exclude": [
     "node_modules"

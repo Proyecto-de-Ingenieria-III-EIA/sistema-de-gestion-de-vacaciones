@@ -10,9 +10,9 @@ export function ApolloProvider({ children }: { children: ReactNode }) {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "/api/graphql"
     
     // Obtener el token de sesión (puedes ajustar esto según cómo almacenes tu token)
-    const sessionToken = typeof window !== 'undefined' 
-      ? localStorage.getItem('session-token') || sessionStorage.getItem('session-token') 
-      : null;
+    const sessionToken = localStorage.getItem('authjs.session-token') || sessionStorage.getItem('authjs.session-token') 
+   || null;
+   console.log(sessionToken)
 
     return new ApolloClient({
       link: new HttpLink({
