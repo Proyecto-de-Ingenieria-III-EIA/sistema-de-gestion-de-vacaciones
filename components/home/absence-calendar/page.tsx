@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { AbsenceGrid } from "./absence-grid"
 import { AbsenceLegend } from "./absence-legend"
-import { GET_ABSENCES_TIME_PERIOD, type GetAbsencesResponse } from "@/graphql/absence/prueba_simon"
+import { GET_ABSENCES_TIME_PERIOD, type GetAbsencesResponse, type Absence } from "@/graphql/absence/prueba_simon"
 
 export default function AbsenceCalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -43,16 +43,25 @@ export default function AbsenceCalendarPage() {
     setCurrentDate((prevDate) => addMonths(prevDate, 1))
   }
 
+  //Funcion para decidir ausencia aprobada
+  function isApproved(a: Absence) {
+    if (a.status.__typename === "RequestStatus")
+      return a.status.reqName === "APROVED"
+
+    if (a.status.__typename === "SpontaneousAbsenceStatus")
+      return a.status.spontName === "APROVED"
+
+    return false
+  }
+
   // Procesar datos de ausencias para agrupar por colaborador
-  const absences = data?.getAbsencesTimePeriod || []
+  const absences = (data?.getAbsencesTimePeriod || []).filter(isApproved)
 
   // Agrupar ausencias por colaborador
   const collaboratorsMap = new Map()
 
   absences.forEach((absence) => {
     const collaboratorId = absence.colaborator.id
-    //debugging
-    const collaboratorName = absence.colaborator.name
 
     if (!collaboratorsMap.has(collaboratorId)) {
       collaboratorsMap.set(collaboratorId, {

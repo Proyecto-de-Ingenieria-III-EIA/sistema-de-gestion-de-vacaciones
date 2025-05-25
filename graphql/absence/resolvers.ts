@@ -4,6 +4,11 @@ import { Enum_RoleName, User } from "@prisma/client";
 import { Enum_Absence_Type } from "./enum_absence_type";
 import { isContext } from "vm";
 
+//Imports para tema del status
+import { Enum_Requested_Absence_Status_Name as RS,
+         Enum_Spotaneus_Absence_Status_Name as SS
+ } from "@prisma/client";
+
 interface CompleteAbsence {
     dbId: string;
     startDate: Date
@@ -105,7 +110,7 @@ const absenceResolvers = {
                     absence."colaborator_id" as "colaboratorId",
 
                     CASE
-                        WHEN spontaneous."absence_id" IS NULL THEN spontaneous."status"
+                        WHEN spontaneous."absence_id" IS NOT NULL THEN spontaneous."status"
                         ELSE request."status"
                     END as "statusId",
 
@@ -151,20 +156,33 @@ const absenceResolvers = {
                 },
             });
         },
-        status: async (parent: CompleteAbsence, args: null, context: OurContext) => {
-            if (parent.statusId === Enum_Absence_Type.INFORMAL || parent.statusId === Enum_Absence_Type.VACATION) {
-                return await context.db.requestStatus.findUnique({
-                    where: {
-                        dbId: parent.statusId,
-                    },
-                });
-            } else {
-                return await context.db.spontaneousAbsenceStatus.findUnique({
-                    where: {
-                        dbId: parent.statusId,
-                    },
-                });
+        status: async (parent: CompleteAbsence, _args: null, context: OurContext) => {
+
+            if(!parent.statusId) return null //seguridad
+
+            if(parent.type === Enum_Absence_Type.SPONTANEOUS) {
+                return context.db.spontaneousAbsenceStatus.findUnique({
+                    where: { dbId: parent.statusId },
+                })
             }
+
+            return context.db.requestStatus.findUnique({
+                where: { dbId: parent.statusId },
+            })
+
+            // if (parent.statusId === Enum_Absence_Type.INFORMAL || parent.statusId === Enum_Absence_Type.VACATION) {
+            //     return await context.db.requestStatus.findUnique({
+            //         where: {
+            //             dbId: parent.statusId,
+            //         },
+            //     });
+            // } else {
+            //     return await context.db.spontaneousAbsenceStatus.findUnique({
+            //         where: {
+            //             dbId: parent.statusId,
+            //         },
+            //     });
+            // }
         },
         reviewer: async (parent: CompleteAbsence, args: null, context: OurContext) => {
             return await context.db.user.findUnique({
@@ -221,6 +239,27 @@ const absenceResolvers = {
                 },
             });
         },
+    },
+    AbsenceStatus: {
+        __resolveType(obj: any) {
+            //Cuando viene RequestStatus
+            if (
+                obj.name &&
+                Object.values(RS).includes(obj.name as RS)
+            ) {
+                return "RequestStatus"
+            }
+
+            //Cuando viene SpontaneoursAbsenceStatus
+            if(
+                obj.name &&
+                Object.values(SS).includes(obj.name as SS)
+            ) {
+                return "SpontaneousAbsenceStatus"
+            }
+
+            return null //fallback
+        }
     }
     
 };
