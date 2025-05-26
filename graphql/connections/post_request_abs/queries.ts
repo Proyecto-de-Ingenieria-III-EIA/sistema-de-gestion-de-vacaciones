@@ -15,6 +15,9 @@ export const GET_ME = gql`
     getCurrentUser {
       id
       name
+      role {
+        name
+      }
     }
   }
 `

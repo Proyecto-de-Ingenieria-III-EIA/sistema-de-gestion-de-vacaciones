@@ -92,6 +92,8 @@ export default function RequestAbsencePage() {
   const { data: usersData, loading: usersLoading, error: usersError } =
     useQuery(GET_USERS)
   const { data: meData } = useQuery(GET_ME)
+  // Auth para el selector
+  const isAdmin = meData?.getCurrentUser?.role?.name === "ADMIN"
   const collaborators = usersData?.getUsers ?? []
 
   /* --- Mutaciones --- */
@@ -183,6 +185,8 @@ export default function RequestAbsencePage() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {/* Colaborador */}
+
+                {isAdmin ? (
                 <FormField
                   control={form.control}
                   name="collaboratorId"
@@ -210,6 +214,19 @@ export default function RequestAbsencePage() {
                     </FormItem>
                   )}
                 />
+              ) : (
+                <FormField
+                  control={form.control}
+                  name="collaboratorId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Colaborador</FormLabel>
+                        <Input value={meData?.getCurrentUser?.name} disabled />   {/* muestra su nombre */}
+                        <input type="hidden" {...field} />            {/* mantiene el id en el form */}
+                    </FormItem>
+                  )}
+                />
+              )}
 
                 {/* Tipo de ausencia */}
                 <FormField

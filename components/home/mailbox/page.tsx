@@ -38,8 +38,9 @@ type Absence = {
 }
 
 export default function MailboxPage() {
-  /* 1️⃣  Query: solicitudes pendientes */
-  const { data, loading, error } = useQuery(GET_PENDING_REQUESTED_ABSENCES)
+  /* Refresh auto*/
+  const { data, loading, error, refetch } =
+     useQuery(GET_PENDING_REQUESTED_ABSENCES, { fetchPolicy: "network-only"})
 
   /* 2️⃣  Estado local para las pestañas */
   const [pendingRequests, setPendingRequests] = useState<Absence[]>([])
@@ -52,8 +53,12 @@ export default function MailboxPage() {
       setPendingRequests(data.getPendingRequestedAbsences)
   }, [data])
 
-  /* 3️⃣  Mutación aprobar / rechazar */
-  const [decideRequestedAbsence] = useMutation(DECIDE_REQUESTED_ABSENCE)
+  /*Mutación aprobar / rechazar */
+  const [decideRequestedAbsence] = useMutation(DECIDE_REQUESTED_ABSENCE, {
+    onCompleted: () => refetch(),
+    onError: e =>
+      toast({ variant: "destructive", title: "Error", description: e.message }),
+  })
 
   async function handleDecision(request: Absence, decision: "APROVED" | "REJECTED") {
     try {

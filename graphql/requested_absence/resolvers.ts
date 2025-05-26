@@ -55,6 +55,10 @@ const requestedAbsenceResolvers = {
 
             const today = new Date();
 
+            //Nuevo Prueba
+            const oneMonthAgo = new Date(); // Nuevo
+            oneMonthAgo.setMonth(today.getMonth() - 1); //Nuevo prueba
+
             const statusId: { dbId: string } | null = await context.db.requestStatus.findFirst({
                 where: {
                     name: Enum_Requested_Absence_Status_Name.PENDING,
@@ -91,8 +95,9 @@ const requestedAbsenceResolvers = {
                     LEFT JOIN "Vacation_Absence" as vacation ON vacation."absence_id" = absence."db_id"
                 WHERE
                     request.status = ${statusId.dbId}
-                    AND absence.start_date >=  ${today}
+                    -- AND absence.start_date >=  ${today}
                     AND absence.reviewer = ${context.authData.userId}
+                    AND absence.start_date >= ${oneMonthAgo}
                 ORDER BY
                     absence.start_date ASC
             `;
