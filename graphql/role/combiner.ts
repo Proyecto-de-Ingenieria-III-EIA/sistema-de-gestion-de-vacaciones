@@ -1,9 +1,5 @@
-import { roleTypes } from "./types";
+import { roleTypes } from './types';
 
-const roleThings = [
-    roleTypes,
-];
+const roleThings = [roleTypes];
 
-export { 
-    roleThings,
-};
+export { roleThings };

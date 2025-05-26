@@ -1,22 +1,22 @@
-import { gql } from "graphql-tag";
+import { gql } from 'graphql-tag';
 
 const spontaneousAbsenceStatusTypes = gql`
-    enum Enum_Spotaneus_Absence_Status_Name {
-        PENDING
-        APROVED
-        REJECTED
-    }
+  enum Enum_Spotaneus_Absence_Status_Name {
+    PENDING
+    APROVED
+    REJECTED
+  }
 
-    type SpontaneousAbsenceStatus {
-        dbId: ID
-        name: Enum_Spotaneus_Absence_Status_Name
-        description: String
+  type SpontaneousAbsenceStatus {
+    dbId: ID
+    name: Enum_Spotaneus_Absence_Status_Name
+    description: String
 
-        createdAt: DateTime
-        updatedAt: DateTime
+    createdAt: DateTime
+    updatedAt: DateTime
 
-        spontaneousAbsence: [SpontaneousAbsence]
-    }
+    spontaneousAbsence: [SpontaneousAbsence]
+  }
 `;
 
 export { spontaneousAbsenceStatusTypes };

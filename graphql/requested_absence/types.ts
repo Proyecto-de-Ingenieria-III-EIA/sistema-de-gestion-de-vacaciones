@@ -1,4 +1,4 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 const requestedAbsenceTypes = gql`
   type RequestedAbsence {
@@ -36,8 +36,3 @@ const requestedAbsenceTypes = gql`
 `;
 
 export { requestedAbsenceTypes };
-
-
-
-
-

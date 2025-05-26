@@ -8,7 +8,6 @@ import '@/styles/globals.css';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { SessionProvider } from 'next-auth/react';
 
-
 const AppWrapper = ({ Component, pageProps }: AppProps) => {
   const router = useRouter();
 

@@ -1,9 +1,9 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 const vacationAbsenceMutations = gql`
-    type Mutation {
-        updateVacationAbsence: VacationAbsence
-    }
+  type Mutation {
+    updateVacationAbsence: VacationAbsence
+  }
 `;
 
 export { vacationAbsenceMutations };

@@ -1,9 +1,9 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 const informalAbsenceQueries = gql`
-    type Query {
-        getAllInformalAbsences: [InformalAbsence]
-    }
+  type Query {
+    getAllInformalAbsences: [InformalAbsence]
+  }
 `;
 
 export { informalAbsenceQueries };

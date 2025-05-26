@@ -1,9 +1,9 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 const vacationPolicyQueries = gql`
-    type Query {
-        getAllVacationPolicies: [VacationPolicy]
-    }
+  type Query {
+    getAllVacationPolicies: [VacationPolicy]
+  }
 `;
 
 export { vacationPolicyQueries };

@@ -1,14 +1,14 @@
-import { gql } from "@apollo/client"
+import { gql } from '@apollo/client';
 
 export const GET_USERS = gql`
   query GetUsers {
     getUsers {
       id
       name
-    #   department
+      #   department
     }
   }
-`
+`;
 
 export const GET_ME = gql`
   query getCurrentUser {
@@ -20,8 +20,7 @@ export const GET_ME = gql`
       }
     }
   }
-`
-
+`;
 
 export const GET_ABSENCES_TIME_PERIOD_FOR_DASHBOARD = gql`
   query GetAbsencesTimePeriod($startDate: DateTime!, $endDate: DateTime!) {
@@ -29,7 +28,7 @@ export const GET_ABSENCES_TIME_PERIOD_FOR_DASHBOARD = gql`
       dbId
       startDate
       endDate
-      type          # ENUM: VACATION | INFORMAL | SPONTANEOUS
+      type # ENUM: VACATION | INFORMAL | SPONTANEOUS
       colaborator {
         id
         # Si tu tipo User tiene 'department', añádelo:
@@ -38,5 +37,3 @@ export const GET_ABSENCES_TIME_PERIOD_FOR_DASHBOARD = gql`
     }
   }
 `;
-
-

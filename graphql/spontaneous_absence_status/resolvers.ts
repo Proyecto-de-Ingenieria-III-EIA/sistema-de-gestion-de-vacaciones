@@ -1,4 +1,3 @@
-const spontaneousAbsenceStatusResolvers = {
-};
+const spontaneousAbsenceStatusResolvers = {};
 
 export { spontaneousAbsenceStatusResolvers };

@@ -19,16 +19,21 @@ const PrivateLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
-      <main className='flex-1 overflow-auto'>
-        <div className='container'>
-          <ApolloProviderWrapper>
-          {/* <ApolloProvider> */}
-            {children}
-            {/* </ApolloProvider> */}
-          </ApolloProviderWrapper>
+      <ThemeProvider
+        attribute='class'
+        defaultTheme='system'
+        enableSystem
+        disableTransitionOnChange
+      >
+        <main className='flex-1 overflow-auto'>
+          <div className='container'>
+            <ApolloProviderWrapper>
+              {/* <ApolloProvider> */}
+              {children}
+              {/* </ApolloProvider> */}
+            </ApolloProviderWrapper>
           </div>
-      </main>
+        </main>
       </ThemeProvider>
     </SidebarProvider>
   );

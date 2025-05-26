@@ -1,11 +1,21 @@
 'use client';
 
-import { ApolloClient, ApolloProvider, HttpLink, InMemoryCache, from } from '@apollo/client';
+import {
+  ApolloClient,
+  ApolloProvider,
+  HttpLink,
+  InMemoryCache,
+  from,
+} from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { useSession } from 'next-auth/react';
 import { useMemo } from 'react';
 
-export function ApolloProviderWrapper({ children }: { children: React.ReactNode }) {
+export function ApolloProviderWrapper({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { data: session, status } = useSession();
 
   /** Espera a que NextAuth termine de cargar */
@@ -13,7 +23,7 @@ export function ApolloProviderWrapper({ children }: { children: React.ReactNode 
     if (status === 'loading') return null;
 
     const httpLink = new HttpLink({
-      uri: '/api/graphql',        // mismo dominio
+      uri: '/api/graphql', // mismo dominio
       credentials: 'same-origin', // envía la cookie
     });
 
@@ -30,7 +40,7 @@ export function ApolloProviderWrapper({ children }: { children: React.ReactNode 
     });
   }, [session, status]);
 
-  if (!client) return null;              // o un spinner
+  if (!client) return null; // o un spinner
 
   return <ApolloProvider client={client}>{children}</ApolloProvider>;
 }

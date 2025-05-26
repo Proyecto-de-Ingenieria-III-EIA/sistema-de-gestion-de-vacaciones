@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
 /* Solicitudes PENDIENTES que le llegan al jefe */
 export const GET_PENDING_REQUESTED_ABSENCES = gql`
@@ -7,12 +7,13 @@ export const GET_PENDING_REQUESTED_ABSENCES = gql`
       dbId
       startDate
       endDate
-      type                               # INFORMAL | SPONTANEOUS
+      type # INFORMAL | SPONTANEOUS
       colaborator {
         id
         name
       }
-      justification {                    # solo existe si es INFORMAL
+      justification {
+        # solo existe si es INFORMAL
         description
       }
     }
@@ -20,15 +21,16 @@ export const GET_PENDING_REQUESTED_ABSENCES = gql`
 `;
 
 export const GET_PENDING_SPONT_ABSENCES = gql`
-query GetPendingSpontaneousAbssences {
-  getPendingSpontaneousAbsences {
-    dbId
-    startDate
-    endDate
-    comments
-    colaborator {
-      id
-      name
+  query GetPendingSpontaneousAbssences {
+    getPendingSpontaneousAbsences {
+      dbId
+      startDate
+      endDate
+      comments
+      colaborator {
+        id
+        name
+      }
     }
   }
-}`
+`;

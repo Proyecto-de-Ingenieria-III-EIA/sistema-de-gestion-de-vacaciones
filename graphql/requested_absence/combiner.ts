@@ -3,6 +3,10 @@ import { requestedAbsenceTypes } from './types';
 import { requestedAbsenceResolvers } from './resolvers';
 import { requestedAbsenceQueries } from './queries';
 
-const requestedAbsenceThings = [requestedAbsenceMutations, requestedAbsenceTypes, requestedAbsenceQueries];
+const requestedAbsenceThings = [
+  requestedAbsenceMutations,
+  requestedAbsenceTypes,
+  requestedAbsenceQueries,
+];
 
 export { requestedAbsenceThings, requestedAbsenceResolvers };

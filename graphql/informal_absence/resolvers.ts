@@ -1,5 +1,3 @@
-const informalAbsenceResolvers = {
-
-};
+const informalAbsenceResolvers = {};
 
 export { informalAbsenceResolvers };

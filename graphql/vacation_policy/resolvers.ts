@@ -1,5 +1,3 @@
-const vacationPolicyResolvers = {
-
-};
+const vacationPolicyResolvers = {};
 
 export { vacationPolicyResolvers };

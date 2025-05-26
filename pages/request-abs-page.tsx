@@ -1,4 +1,4 @@
-import RequestAbsencePage from "@/components/home/request-abs/page";
+import RequestAbsencePage from '@/components/home/request-abs/page';
 
 const Requests = () => {
   return (

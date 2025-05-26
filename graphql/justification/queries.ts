@@ -1,9 +1,9 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 const justificationQueries = gql`
-    type Query {
-        getAllJustifications: [Justification]
-    }
+  type Query {
+    getAllJustifications: [Justification]
+  }
 `;
 
 export { justificationQueries };

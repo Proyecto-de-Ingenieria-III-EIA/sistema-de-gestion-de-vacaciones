@@ -8,9 +8,9 @@
 //   const client = useMemo(() => {
 //     // Nota: Las variables de entorno en el cliente deben comenzar con NEXT_PUBLIC_
 //     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "/api/graphql"
-    
+
 //     // Obtener el token de sesión (puedes ajustar esto según cómo almacenes tu token)
-//     const sessionToken = localStorage.getItem('authjs.session-token') || sessionStorage.getItem('authjs.session-token') 
+//     const sessionToken = localStorage.getItem('authjs.session-token') || sessionStorage.getItem('authjs.session-token')
 //    || null;
 //    console.log(sessionToken)
 

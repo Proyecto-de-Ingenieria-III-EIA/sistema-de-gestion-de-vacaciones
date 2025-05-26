@@ -1,9 +1,5 @@
-import { sessionTypes } from "./types";
+import { sessionTypes } from './types';
 
-const sessionThings = [
-    sessionTypes,
-];
+const sessionThings = [sessionTypes];
 
-export {
-    sessionThings,
-};
+export { sessionThings };

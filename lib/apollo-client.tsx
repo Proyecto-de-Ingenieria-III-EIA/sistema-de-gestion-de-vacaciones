@@ -1,12 +1,9 @@
-"use client"
-import { ApolloClient, InMemoryCache } from '@apollo/client'
-
+'use client';
+import { ApolloClient, InMemoryCache } from '@apollo/client';
 
 const client = new ApolloClient({
-    uri: process.env.BACKEND_URL,
-    cache: new InMemoryCache(),
+  uri: process.env.BACKEND_URL,
+  cache: new InMemoryCache(),
+});
 
-})
-
-export default client
-
+export default client;

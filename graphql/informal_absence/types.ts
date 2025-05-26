@@ -1,16 +1,16 @@
 import { gql } from 'graphql-tag';
 
 const informalAbsenceTypes = gql`
-    type InformalAbsence {
-        absenceId: ID
+  type InformalAbsence {
+    absenceId: ID
 
-        createdAt: DateTime
-        updatedAt: DateTime
+    createdAt: DateTime
+    updatedAt: DateTime
 
-        requestedAbsence: RequestedAbsence
+    requestedAbsence: RequestedAbsence
 
-        justification: Justification
-    }
+    justification: Justification
+  }
 `;
 
 export { informalAbsenceTypes };

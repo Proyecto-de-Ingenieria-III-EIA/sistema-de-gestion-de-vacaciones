@@ -10,11 +10,9 @@ import { FailedAuthError } from '@/errors/FailedAuthError';
 const prisma = new PrismaClient();
 
 export const schema = makeExecutableSchema({
-    typeDefs: types,
-    resolvers,
+  typeDefs: types,
+  resolvers,
 });
-
-
 
 // we can define contexts in our servers, that are going to allow us to pass data to the resolvers.
 // All resolvers are going to be able to access this data (objects). In this case, we are passing our prisma client
@@ -22,28 +20,31 @@ export const schema = makeExecutableSchema({
 
 // In the apollo server we tell it what context it will have (the interface we made for the prisma client)
 const server = new ApolloServer<OurContext>({
-    schema,
-    introspection: true,
-    formatError: (err) => {
-        console.error(err); // Log full error for debugging
-        return {
-        message: (err.extensions === undefined) ? err.message : 'Internal server error',
-        code: err.extensions?.code || 'INTERNAL_SERVER_ERROR',
-        statusCode: err.extensions?.statusCode || 500,
-        };
-    }
+  schema,
+  introspection: true,
+  formatError: (err) => {
+    console.error(err); // Log full error for debugging
+    return {
+      message:
+        err.extensions === undefined ? err.message : 'Internal server error',
+      code: err.extensions?.code || 'INTERNAL_SERVER_ERROR',
+      statusCode: err.extensions?.statusCode || 500,
+    };
+  },
 });
 
 // Here we give the embed the context in the server
 export default startServerAndCreateNextHandler(server, {
-    context: async (req: NextApiRequest, res: NextApiResponse) => {
-        const token = req.headers['session-token'];
+  context: async (req: NextApiRequest, res: NextApiResponse) => {
+    const token = req.headers['session-token'];
 
-        const authData: [{
-                userId: string,
-                role: Enum_RoleName,
-                expires: Date,
-            }] = await prisma.$queryRaw`
+    const authData: [
+      {
+        userId: string;
+        role: Enum_RoleName;
+        expires: Date;
+      },
+    ] = await prisma.$queryRaw`
             SELECT
                 u."id" as "userId",
                 r."name" as "role",
@@ -58,12 +59,11 @@ export default startServerAndCreateNextHandler(server, {
                 s."sessionToken" = ${token}
         `;
 
-        if (!authData[0])
-            throw new FailedAuthError();
+    if (!authData[0]) throw new FailedAuthError();
 
-        return {
-            db: prisma,
-            authData: authData[0],
-        };
-    }
+    return {
+      db: prisma,
+      authData: authData[0],
+    };
+  },
 });

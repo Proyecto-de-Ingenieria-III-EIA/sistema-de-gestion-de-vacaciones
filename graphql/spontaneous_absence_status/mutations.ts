@@ -1,9 +1,9 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 const spontaneousAbsenceStatusMutations = gql`
-    type Mutation {
-        updateSpontaneousAbsenceStatus: SpontaneousAbsenceStatus
-    }
+  type Mutation {
+    updateSpontaneousAbsenceStatus: SpontaneousAbsenceStatus
+  }
 `;
 
 export { spontaneousAbsenceStatusMutations };

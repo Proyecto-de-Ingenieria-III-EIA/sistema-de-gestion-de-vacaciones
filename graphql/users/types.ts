@@ -1,4 +1,4 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 // Difine a graphQL schema
 // We define the object we want o make queries or mutations on
@@ -13,7 +13,7 @@ import gql from "graphql-tag";
 // specify the fields that he wants to get back. Therefore avoiding under or over fetching
 
 // When we want our queries to receive parameters, we use the parenthesis and specify the type and name of the parameter
-const userTypes = gql`  
+const userTypes = gql`
   type User {
     id: ID
     name: String
@@ -24,7 +24,7 @@ const userTypes = gql`
 
     absences: [Absence]
     sessions: [Session]
-  } 
+  }
 `;
 
 export { userTypes };

@@ -3,7 +3,7 @@
 
 // const FooterPublic: React.FC = () => {
 //   const currentYear = new Date().getFullYear();
-  
+
 //   return (
 //     <footer className="py-8 bg-white border-t border-gray-100">
 //       <div className="container mx-auto px-4">
@@ -31,7 +31,7 @@
 //               </a>
 //             </div>
 //           </div>
-          
+
 //           <div>
 //             <h3 className="font-medium text-lg mb-4">Quick Links</h3>
 //             <ul className="space-y-2 text-sm text-gray-600">
@@ -41,7 +41,7 @@
 //               <li><a href="#" className="hover:text-black transition-colors">Support</a></li>
 //             </ul>
 //           </div>
-          
+
 //           <div>
 //             <h3 className="font-medium text-lg mb-4">Contact</h3>
 //             <ul className="space-y-2 text-sm text-gray-600">
@@ -58,12 +58,12 @@
 //             </ul>
 //           </div>
 //         </div>
-        
+
 //         <div className="pt-6 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center">
 //           <p className="text-sm text-gray-500 mb-4 md:mb-0">
 //             © {currentYear} <span className="font-medium">Los Arturos</span>. All rights reserved.
 //           </p>
-          
+
 //           <div className="flex gap-6 text-sm">
 //             <a href="#" className="text-gray-500 hover:text-black transition-colors">Privacy Policy</a>
 //             <a href="#" className="text-gray-500 hover:text-black transition-colors">Terms of Service</a>

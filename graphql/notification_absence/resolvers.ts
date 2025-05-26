@@ -1,75 +1,83 @@
-import { AbsenceNotFoundError } from "@/errors/AbsenceNotFoundError";
-import { OurContext } from "../context";
+import { AbsenceNotFoundError } from '@/errors/AbsenceNotFoundError';
+import { OurContext } from '../context';
 
 interface NotificationAbsence {
-    absenceId: string;
-    isForBoss: boolean;
-    isForWorker: boolean;
-    notificationMessage: string;
+  absenceId: string;
+  isForBoss: boolean;
+  isForWorker: boolean;
+  notificationMessage: string;
 }
 
 const notificationAbsenceResolvers = {
-    Mutation: {
-        setNotificationAsSeen: async (parent: null, input: { absenceId: string, forBoss: boolean }, { db }: OurContext) => {
-            if ((await db.absence.count({ where: { dbId: input.absenceId }})) === 0)
-                throw new AbsenceNotFoundError();
+  Mutation: {
+    setNotificationAsSeen: async (
+      parent: null,
+      input: { absenceId: string; forBoss: boolean },
+      { db }: OurContext
+    ) => {
+      if ((await db.absence.count({ where: { dbId: input.absenceId } })) === 0)
+        throw new AbsenceNotFoundError();
 
-            if (input.forBoss) {
-                return await db.absenceNotification.update({
-                    where: {
-                        absenceId: input.absenceId,
-                    },
-                    data: {
-                        hasBeenSeen: true,
-                        isForBoss: false,
-                    },
-                });
-            }
-            
-            return await db.absenceNotification.update({
-                    where: {
-                        absenceId: input.absenceId,
-                    },
-                    data: {
-                        hasBeenSeen: true,
-                        isForWorker: false,
-                    },
-                });
-        }, 
-        setNotificationAsUnseen: async (parent: null, input: { absenceId: string, forBoss: boolean }, { db }: OurContext) => {
-            if ((await db.absence.count({ where: { dbId: input.absenceId }})) === 0)
-                throw new AbsenceNotFoundError();
+      if (input.forBoss) {
+        return await db.absenceNotification.update({
+          where: {
+            absenceId: input.absenceId,
+          },
+          data: {
+            hasBeenSeen: true,
+            isForBoss: false,
+          },
+        });
+      }
 
-            if (input.forBoss) {
-                return await db.absenceNotification.update({
-                    where: {
-                        absenceId: input.absenceId,
-                    },
-                    data: {
-                        hasBeenSeen: false,
-                        isForBoss: true,
-                    },
-                });
-            }
-            
-            return await db.absenceNotification.update({
-                    where: {
-                        absenceId: input.absenceId,
-                    },
-                    data: {
-                        hasBeenSeen: true,
-                        isForWorker: true,
-                    },
-                });
-        }, 
+      return await db.absenceNotification.update({
+        where: {
+          absenceId: input.absenceId,
+        },
+        data: {
+          hasBeenSeen: true,
+          isForWorker: false,
+        },
+      });
     },
-    Query: {
-        getUserNotifications: async (
-            parent: null,
-            { userId }: { userId: String },
-            { db }: OurContext
-        ) => {
-            const result = await db.$queryRaw`
+    setNotificationAsUnseen: async (
+      parent: null,
+      input: { absenceId: string; forBoss: boolean },
+      { db }: OurContext
+    ) => {
+      if ((await db.absence.count({ where: { dbId: input.absenceId } })) === 0)
+        throw new AbsenceNotFoundError();
+
+      if (input.forBoss) {
+        return await db.absenceNotification.update({
+          where: {
+            absenceId: input.absenceId,
+          },
+          data: {
+            hasBeenSeen: false,
+            isForBoss: true,
+          },
+        });
+      }
+
+      return await db.absenceNotification.update({
+        where: {
+          absenceId: input.absenceId,
+        },
+        data: {
+          hasBeenSeen: true,
+          isForWorker: true,
+        },
+      });
+    },
+  },
+  Query: {
+    getUserNotifications: async (
+      parent: null,
+      { userId }: { userId: String },
+      { db }: OurContext
+    ) => {
+      const result = await db.$queryRaw`
                 SELECT
                     absence_notification."absence_id" as "absenceId",
                     absence_notification."is_for_boss" as "isForBoss",
@@ -86,21 +94,22 @@ const notificationAbsenceResolvers = {
                 ;
             `;
 
-            return result;
-        },
+      return result;
     },
-    Notification_Absence: {
-        absence: async (parent: NotificationAbsence, 
-            args: null,
-            context: OurContext
-        ) => {
-            return await context.db.absence.findFirst({
-                where: {
-                    dbId: parent.absenceId,
-                }
-            });
-        }
-    }
+  },
+  Notification_Absence: {
+    absence: async (
+      parent: NotificationAbsence,
+      args: null,
+      context: OurContext
+    ) => {
+      return await context.db.absence.findFirst({
+        where: {
+          dbId: parent.absenceId,
+        },
+      });
+    },
+  },
 };
 
 export { notificationAbsenceResolvers };

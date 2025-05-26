@@ -1,47 +1,47 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 const absenceTypes = gql`
-    enum AbsenceType {
-        VACATION
-        INFORMAL
-        SPONTANEOUS
-    }
+  enum AbsenceType {
+    VACATION
+    INFORMAL
+    SPONTANEOUS
+  }
 
-    type Absence {
-        dbId: ID
-        colaboratorId: ID
-        startDate: DateTime
-        endDate: DateTime
-        valid: Boolean
-        reviewer: ID
-        
-        createdAt: DateTime
-        updatedAt: DateTime
+  type Absence {
+    dbId: ID
+    colaboratorId: ID
+    startDate: DateTime
+    endDate: DateTime
+    valid: Boolean
+    reviewer: ID
 
-        colaborator: User
-        reviewerObject: User
+    createdAt: DateTime
+    updatedAt: DateTime
 
-        requestedAbsence: RequestedAbsence
-        spontaneousAbsence: SpontaneousAbsence
-    }
+    colaborator: User
+    reviewerObject: User
 
-    union AbsenceStatus = RequestStatus | SpontaneousAbsenceStatus
+    requestedAbsence: RequestedAbsence
+    spontaneousAbsence: SpontaneousAbsence
+  }
 
-    type CompleteAbsence {
-        dbId: ID
-        startDate: DateTime
-        endDate: DateTime
-        decisionDate: DateTime
+  union AbsenceStatus = RequestStatus | SpontaneousAbsenceStatus
 
-        colaborator: User
-        status: AbsenceStatus
-        reviewer: User
-        type: AbsenceType
-        justification: Justification
+  type CompleteAbsence {
+    dbId: ID
+    startDate: DateTime
+    endDate: DateTime
+    decisionDate: DateTime
 
-        createdAt: DateTime
-        updatedAt: DateTime
-    }
+    colaborator: User
+    status: AbsenceStatus
+    reviewer: User
+    type: AbsenceType
+    justification: Justification
+
+    createdAt: DateTime
+    updatedAt: DateTime
+  }
 `;
 
 export { absenceTypes };

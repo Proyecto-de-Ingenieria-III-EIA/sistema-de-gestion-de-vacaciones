@@ -1,10 +1,10 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 const spontaneousAbsenceQueries = gql`
-    type Query {
-        getAllSpontaneousAbsences: [SpontaneousAbsence],
-        getPendingSpontaneousAbsences: [CompleteSpontaneousAbsence]
-    }
+  type Query {
+    getAllSpontaneousAbsences: [SpontaneousAbsence]
+    getPendingSpontaneousAbsences: [CompleteSpontaneousAbsence]
+  }
 `;
 
 export { spontaneousAbsenceQueries };
