@@ -18,3 +18,17 @@ export const GET_PENDING_REQUESTED_ABSENCES = gql`
     }
   }
 `;
+
+export const GET_PENDING_SPONT_ABSENCES = gql`
+query GetPendingSpontaneousAbssences {
+  getPendingSpontaneousAbsences {
+    dbId
+    startDate
+    endDate
+    comments
+    colaborator {
+      id
+      name
+    }
+  }
+}`

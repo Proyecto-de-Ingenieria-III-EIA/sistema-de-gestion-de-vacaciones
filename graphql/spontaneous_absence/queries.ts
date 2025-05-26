@@ -2,7 +2,8 @@ import gql from "graphql-tag";
 
 const spontaneousAbsenceQueries = gql`
     type Query {
-        getAllSpontaneousAbsences: [SpontaneousAbsence]
+        getAllSpontaneousAbsences: [SpontaneousAbsence],
+        getPendingSpontaneousAbsences: [CompleteSpontaneousAbsence]
     }
 `;
 

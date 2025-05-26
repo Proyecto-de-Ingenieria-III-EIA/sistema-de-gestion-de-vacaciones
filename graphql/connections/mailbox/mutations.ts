@@ -8,3 +8,12 @@ export const DECIDE_REQUESTED_ABSENCE = gql`
   }
 `
 
+export const DECIDE_SPONTANEOUS_ABSENCE = gql`
+  mutation DecideSpontaneousAbsence($absenceId: ID!, $decision: Enum_Spotaneus_Absence_Status_Name!) {
+    makeDecisionSpontaneousAbsence(absenceId: $absenceId, decision: $decision) {
+      absenceId
+    }
+  }
+`;
+
+

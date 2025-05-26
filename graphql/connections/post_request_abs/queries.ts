@@ -39,3 +39,4 @@ export const GET_ABSENCES_TIME_PERIOD_FOR_DASHBOARD = gql`
   }
 `;
 
+

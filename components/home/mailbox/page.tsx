@@ -4,109 +4,135 @@ import { useEffect, useState } from "react"
 import { useQuery, useMutation } from "@apollo/client"
 import { format, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
-import { Check, Clock, Inbox, MailX, X } from "lucide-react"
-
-import {
-  GET_PENDING_REQUESTED_ABSENCES,
-} from "@/graphql/connections/mailbox/queries"
-import { DECIDE_REQUESTED_ABSENCE } from "@/graphql/connections/mailbox/mutations"
-
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  // CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Check, Clock, Inbox, MailX, X } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
+import {
+  GET_PENDING_REQUESTED_ABSENCES,
+  GET_PENDING_SPONT_ABSENCES,
+} from "@/graphql/connections/mailbox/queries"
+import {
+  DECIDE_REQUESTED_ABSENCE,
+  DECIDE_SPONTANEOUS_ABSENCE,
+} from "@/graphql/connections/mailbox/mutations"
+
 /* ------------------------------------------------------------------ */
-/* Tipado mínimo para mantener autocompletado sin codegen             */
-/* ------------------------------------------------------------------ */
+type AbsenceType = "VACATION" | "INFORMAL" | "SPONTANEOUS"
+
 type Absence = {
   dbId: string
   startDate: string
   endDate: string
-  type: "VACATION" | "SPONTANEOUS" | "INFORMAL"
+  type: AbsenceType
   colaborator: { id: string; name: string | null }
-  justification?: { description?: string | null }
+  justification?: { description?: string | null } | null
+  comments?: string | null
 }
+/* ------------------------------------------------------------------ */
 
 export default function MailboxPage() {
-  /* Refresh auto*/
-  const { data, loading, error, refetch } =
-     useQuery(GET_PENDING_REQUESTED_ABSENCES, { fetchPolicy: "network-only"})
+  /* ──────  Queries  ────── */
+  const {
+    data: reqData,
+    loading: reqLoading,
+    error: reqError,
+    refetch: refetchReq,
+  } = useQuery(GET_PENDING_REQUESTED_ABSENCES, { fetchPolicy: "network-only" })
 
-  /* 2️⃣  Estado local para las pestañas */
-  const [pendingRequests, setPendingRequests] = useState<Absence[]>([])
-  const [approvedRequests, setApprovedRequests] = useState<Absence[]>([])
-  const [rejectedRequests, setRejectedRequests] = useState<Absence[]>([])
+  const {
+    data: spontData,
+    loading: spontLoading,
+    error: spontError,
+    refetch: refetchSpont,
+  } = useQuery(GET_PENDING_SPONT_ABSENCES, { fetchPolicy: "network-only" })
 
-  /* Rellenar pendientes cuando llega la data */
+  const loading = reqLoading || spontLoading
+  const error = reqError || spontError
+
+  /* ──────  Estado local  ────── */
+  const [pending, setPending]   = useState<Absence[]>([])
+  const [approved, setApproved] = useState<Absence[]>([])
+  const [rejected, setRejected] = useState<Absence[]>([])
+
+  /* ──────  Sincroniza pendientes al recibir datos  ────── */
   useEffect(() => {
-    if (data?.getPendingRequestedAbsences)
-      setPendingRequests(data.getPendingRequestedAbsences)
-  }, [data])
+    /*  Aseguramos que las espontáneas lleven type === "SPONTANEOUS"
+        por si el back-end aún no lo envía.   */
+    const spont = (spontData?.getPendingSpontaneousAbsences ?? []).map(
+      (r: any) => ({ ...r, type: "SPONTANEOUS" as const })
+    )
 
-  /*Mutación aprobar / rechazar */
-  const [decideRequestedAbsence] = useMutation(DECIDE_REQUESTED_ABSENCE, {
-    onCompleted: () => refetch(),
-    onError: e =>
+    setPending([
+      ...(reqData?.getPendingRequestedAbsences ?? []),
+      ...spont,
+    ])
+  }, [reqData, spontData])
+
+  /* ──────  Mutaciones  ────── */
+  const [decideReq] = useMutation(DECIDE_REQUESTED_ABSENCE, {
+    onCompleted: () => refetchReq(),
+    onError: (e) =>
       toast({ variant: "destructive", title: "Error", description: e.message }),
   })
 
-  async function handleDecision(request: Absence, decision: "APROVED" | "REJECTED") {
+  const [decideSpont] = useMutation(DECIDE_SPONTANEOUS_ABSENCE, {
+    onCompleted: () => refetchSpont(),
+    onError: (e) =>
+      toast({ variant: "destructive", title: "Error", description: e.message }),
+  })
+
+  /* ──────  Aprobar / Rechazar  ────── */
+  async function handleDecision(
+    request: Absence,
+    decision: "APROVED" | "REJECTED"
+  ) {
     try {
-      await decideRequestedAbsence({
-        variables: { absenceId: request.dbId, decision },
-      })
-
-      setPendingRequests(prev => prev.filter(r => r.dbId !== request.dbId))
-      if (decision === "APROVED")
-        setApprovedRequests(prev => [...prev, request])
+      if (request.type === "SPONTANEOUS")
+        await decideSpont({ variables: { absenceId: request.dbId, decision } })
       else
-        setRejectedRequests(prev => [...prev, request])
+        await decideReq({ variables: { absenceId: request.dbId, decision } })
 
-      toast({
-        title: `Solicitud ${decision === "APROVED" ? "aprobada" : "rechazada"}`,
-      })
+      setPending((p) => p.filter((r) => r.dbId !== request.dbId))
+      decision === "APROVED"
+        ? setApproved((a) => [...a, request])
+        : setRejected((r) => [...r, request])
+
+      toast({ title: `Solicitud ${decision === "APROVED" ? "aprobada" : "rechazada"}` })
     } catch (e: any) {
       toast({ variant: "destructive", title: "Error", description: e.message })
     }
   }
 
-  /* 4️⃣ Render de cada tarjeta */
-  function renderRequest(request: Absence, actions = true) {
-    const { colaborator } = request
+  /* ──────  Tarjeta  ────── */
+  function RequestCard(req: Absence, withActions = true) {
     return (
-      <Card key={request.dbId} className="mb-4">
+      <Card key={req.dbId} className="mb-4">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-lg">{colaborator.name}</CardTitle>
-              {/* <CardDescription>
-                {colaborator.department ?? "NA department"}
-              </CardDescription> */}
-            </div>
+            <CardTitle className="text-lg">{req.colaborator.name ?? "—"}</CardTitle>
+
             <Badge
               variant={
-                request.type === "VACATION"
+                req.type === "VACATION"
                   ? "default"
-                  : request.type === "INFORMAL"
+                  : req.type === "INFORMAL"
                   ? "secondary"
                   : "destructive"
               }
             >
-              {request.type === "VACATION"
-                ? "Vacaciones"
-                : request.type === "SPONTANEOUS"
-                ? "Espontánea"
-                : "Informal"}
+              {req.type === "VACATION" ? "Vacaciones" :
+               req.type === "SPONTANEOUS" ? "Espontánea" : "Informal"}
             </Badge>
           </div>
         </CardHeader>
@@ -115,31 +141,28 @@ export default function MailboxPage() {
           <div className="flex items-center text-sm">
             <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
             <span>
-              {format(parseISO(request.startDate), "PPP", { locale: es })} –{" "}
-              {format(parseISO(request.endDate), "PPP", { locale: es })}
+              {format(parseISO(req.startDate), "PPP", { locale: es })} –{" "}
+              {format(parseISO(req.endDate),   "PPP", { locale: es })}
             </span>
           </div>
 
-          {request.justification?.description && (
-            <p className="text-sm">
-              <strong>Motivo:</strong> {request.justification.description}
-            </p>
+          {req.justification?.description && (
+            <p className="text-sm"><strong>Motivo:</strong> {req.justification.description}</p>
+          )}
+
+          {req.type === "SPONTANEOUS" && req.comments && (
+            <p className="text-sm"><strong>Comentario:</strong> {req.comments}</p>
           )}
         </CardContent>
 
-        {actions && (
+        {withActions && (
           <CardFooter className="flex justify-end space-x-2 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleDecision(request, "REJECTED")}
-            >
-              <X className="mr-2 h-4 w-4" />
-              Rechazar
+            <Button variant="outline" size="sm"
+              onClick={() => handleDecision(req, "REJECTED")}>
+              <X className="mr-2 h-4 w-4" /> Rechazar
             </Button>
-            <Button size="sm" onClick={() => handleDecision(request, "APROVED")}>
-              <Check className="mr-2 h-4 w-4" />
-              Aprobar
+            <Button size="sm" onClick={() => handleDecision(req, "APROVED")}>
+              <Check className="mr-2 h-4 w-4" /> Aprobar
             </Button>
           </CardFooter>
         )}
@@ -147,9 +170,7 @@ export default function MailboxPage() {
     )
   }
 
-  /* ------------------------------------------------------------------ */
-  /* UI principal                                                       */
-  /* ------------------------------------------------------------------ */
+  /* ──────  UI principal  ────── */
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-4xl mx-auto">
@@ -163,64 +184,42 @@ export default function MailboxPage() {
         <Tabs defaultValue="pending" className="space-y-6">
           <TabsList>
             <TabsTrigger value="pending" className="flex items-center">
-              <Clock className="mr-2 h-4 w-4" />
-              Pendientes
-              {pendingRequests.length > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {pendingRequests.length}
-                </Badge>
+              <Clock className="mr-2 h-4 w-4" /> Pendientes
+              {!!pending.length && (
+                <Badge variant="secondary" className="ml-2">{pending.length}</Badge>
               )}
             </TabsTrigger>
+
             <TabsTrigger value="approved" className="flex items-center">
-              <Check className="mr-2 h-4 w-4" />
-              Aprobadas
-              {approvedRequests.length > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {approvedRequests.length}
-                </Badge>
+              <Check className="mr-2 h-4 w-4" /> Aprobadas
+              {!!approved.length && (
+                <Badge variant="secondary" className="ml-2">{approved.length}</Badge>
               )}
             </TabsTrigger>
+
             <TabsTrigger value="rejected" className="flex items-center">
-              <X className="mr-2 h-4 w-4" />
-              Rechazadas
-              {rejectedRequests.length > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {rejectedRequests.length}
-                </Badge>
+              <X className="mr-2 h-4 w-4" /> Rechazadas
+              {!!rejected.length && (
+                <Badge variant="secondary" className="ml-2">{rejected.length}</Badge>
               )}
             </TabsTrigger>
           </TabsList>
 
-          {/* ---------- Pendientes ---------- */}
           <TabsContent value="pending">
-            <Section
-              title="Solicitudes Pendientes"
-              loading={loading}
-              empty={pendingRequests.length === 0}
-            >
-              {pendingRequests.map(req => renderRequest(req))}
+            <Section title="Solicitudes Pendientes" loading={loading} empty={!pending.length}>
+              {pending.map((r) => RequestCard(r))}
             </Section>
           </TabsContent>
 
-          {/* ---------- Aprobadas ---------- */}
           <TabsContent value="approved">
-            <Section
-              title="Solicitudes Aprobadas"
-              loading={false}
-              empty={approvedRequests.length === 0}
-            >
-              {approvedRequests.map(req => renderRequest(req, false))}
+            <Section title="Solicitudes Aprobadas" loading={false} empty={!approved.length}>
+              {approved.map((r) => RequestCard(r, false))}
             </Section>
           </TabsContent>
 
-          {/* ---------- Rechazadas ---------- */}
           <TabsContent value="rejected">
-            <Section
-              title="Solicitudes Rechazadas"
-              loading={false}
-              empty={rejectedRequests.length === 0}
-            >
-              {rejectedRequests.map(req => renderRequest(req, false))}
+            <Section title="Solicitudes Rechazadas" loading={false} empty={!rejected.length}>
+              {rejected.map((r) => RequestCard(r, false))}
             </Section>
           </TabsContent>
         </Tabs>
@@ -230,19 +229,9 @@ export default function MailboxPage() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Sub-componente reutilizable                                         */
-/* ------------------------------------------------------------------ */
 function Section({
-  title,
-  loading,
-  empty,
-  children,
-}: {
-  title: string
-  loading: boolean
-  empty: boolean
-  children: React.ReactNode
-}) {
+  title, loading, empty, children,
+}: { title: string; loading: boolean; empty: boolean; children: React.ReactNode }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -250,9 +239,7 @@ function Section({
       </div>
       <Separator />
       {loading ? (
-        <div className="py-8 text-center">
-          <p>Cargando solicitudes…</p>
-        </div>
+        <div className="py-8 text-center"><p>Cargando solicitudes…</p></div>
       ) : empty ? (
         <div className="py-8 text-center">
           <MailX className="mx-auto h-12 w-12 text-muted-foreground" />

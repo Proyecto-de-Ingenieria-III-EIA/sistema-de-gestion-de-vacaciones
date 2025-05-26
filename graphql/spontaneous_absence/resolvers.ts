@@ -12,8 +12,7 @@ import { messages } from "../notification_absence/messages";
 interface SpontaneousAbsenceCreation {
     colaboratorId: string;
     startDate: Date;
-    endDate: Date | null;// Null is in case the boss added the absence when he saw the colaborator wasnt there,
-    //  but he doesnt know when the colaborator will be back
+    endDate: Date;
     comments: string | null;
 }
 
@@ -90,6 +89,7 @@ const spontaneousAbsenceResolvers = {
                         absenceId: absence.dbId
                     },
                     data: {
+                        isForBoss: true, // Nuevo para notificar al boss y este pueda tomar decision
                         isForWorker: true,
                         hasBeenSeen: false,
                         message: messages.spontaneousAbsenceCreation,
@@ -172,49 +172,71 @@ const spontaneousAbsenceResolvers = {
             });
         },
         makeDecisionSpontaneousAbsence: async (parent: null, 
-            args: { absenceId: string, decision: Enum_Spotaneus_Absence_Status_Name }, 
+            { absenceId, decision }: { absenceId: string, decision: Enum_Spotaneus_Absence_Status_Name }, 
             { db, authData }: OurContext) => {
-                if (authData.role !== Enum_RoleName.ADMIN)
-                    throw new NotSufficentCredentialsError();
 
-                if ((await db.requestedAbsence.count({
-                        where: {
-                            absenceId: args.absenceId,
-                        }
-                    })) === 0)
-                    throw new AbsenceNotFoundError();
+            if (authData.role !== Enum_RoleName.ADMIN)
+                throw new NotSufficentCredentialsError();
 
-                const spontAbsenceStatus = await db.spontaneousAbsenceStatus.findFirst({
+            // Debug: Let's see what we're actually looking for
+            console.log('Looking for absenceId:', absenceId);
+
+            // First, let's check if the absence exists in the main Absence table
+            const mainAbsence = await db.absence.findUnique({
+                where: {
+                    dbId: absenceId
+                }
+            });
+
+            if (!mainAbsence) {
+                console.log('Main absence not found with dbId:', absenceId);
+                throw new AbsenceNotFoundError('Main absence not found');
+            }
+
+            // Now check if it exists in spontaneous absence table
+            const spontaneousAbsenceCount = await db.spontaneousAbsence.count({
+                where: {
+                    absenceId: absenceId,
+                }
+            });
+
+            console.log('Spontaneous absence count:', spontaneousAbsenceCount);
+
+            if (spontaneousAbsenceCount === 0) {
+                console.log('Spontaneous absence not found with absenceId:', absenceId);
+                throw new AbsenceNotFoundError('This is not a spontaneous absence');
+            }
+
+            const spontAbsenceStatus = await db.spontaneousAbsenceStatus.findFirst({
+                where: {
+                    name: decision,
+                }
+            });
+
+            if (!spontAbsenceStatus)
+                throw new IncorrectInputError("The status name provided is not valid");
+
+            return db.$transaction(async (tx) => {
+                await tx.absenceNotification.update({
                     where: {
-                        name: args.decision,
+                        absenceId: absenceId,
+                    },
+                    data: {
+                        isForWorker: true,
+                        hasBeenSeen: false,
+                        message: messages.spontaneousAbsenceDecisionMade,
                     }
                 });
 
-                if (!spontAbsenceStatus)
-                    throw new IncorrectInputError("The status name provided is not valid");
-
-
-                return db.$transaction(async (tx) => {
-                        await tx.absenceNotification.update({
-                            where: {
-                                absenceId: args.absenceId,
-                            },
-                            data: {
-                                isForWorker: true,
-                                hasBeenSeen: false,
-                                message: messages.spontaneousAbsenceDecisionMade,
-                            }
-                        });
-
-                        return await tx.spontaneousAbsence.update({
-                            where: {
-                                absenceId: args.absenceId,
-                            },
-                            data: {
-                                status: spontAbsenceStatus.dbId,
-                            }
-                        });
+                return await tx.spontaneousAbsence.update({
+                    where: {
+                        absenceId: absenceId,
+                    },
+                    data: {
+                        status: spontAbsenceStatus.dbId,
+                    }
                 });
+            });
         }
     },
     CompleteSpontaneousAbsence: {  
@@ -276,8 +298,37 @@ const spontaneousAbsenceResolvers = {
                 }
             });
         },
-    }
+    },
 
+    Query: {
+        getPendingSpontaneousAbsences: async (_parent:null, _args:null, ctx: OurContext) => {
+            const statusPending = await ctx.db.spontaneousAbsenceStatus.findFirst({
+                where: { name: Enum_Spotaneus_Absence_Status_Name.PENDING},
+                select: { dbId: true }
+            })
+            
+            if(!statusPending) throw new StatusNotFoundError("No pending Status")
+
+            return ctx.db.$queryRaw`
+                SELECT
+                    ab."db_id" AS "dbId",
+                    ab."start_date" AS "startDate",
+                    ab."end_date" AS "endDate",
+                    ab."colaborator_id" AS "colaboratorId",
+                    sa."status" AS "statusId",
+                    ab."reviewer" AS "reviewerId",
+                    ab."comments" AS "comments",
+                    ${Enum_Absence_Type.SPONTANEOUS} AS "type", --Nueva probando
+                    ab."created_at" AS "createdAt",
+                    ab."updated_at" AS "updatedAt"
+                FROM "Spontaneous_Absence" sa
+                JOIN "Absence" ab ON ab."db_id" = sa."absence_id"
+                WHERE sa."status" = ${statusPending.dbId}
+                    AND ab."reviewer" = ${ctx.authData.userId}
+                ORDER BY ab."start_date" ASC
+            `
+        }
+    }
 };
 
 export { spontaneousAbsenceResolvers };

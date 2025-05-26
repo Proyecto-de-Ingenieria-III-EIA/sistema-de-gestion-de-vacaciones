@@ -14,7 +14,7 @@ export function ApolloProviderWrapper({ children }: { children: React.ReactNode 
 
     const httpLink = new HttpLink({
       uri: '/api/graphql',        // mismo dominio
-      credentials: 'same-origin', // envía la cookie por si la necesitas
+      credentials: 'same-origin', // envía la cookie
     });
 
     const authLink = setContext((_, { headers }) => ({
