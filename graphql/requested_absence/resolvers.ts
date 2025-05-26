@@ -82,8 +82,9 @@ const requestedAbsenceResolvers = {
                     absence."colaborator_id" as "colaboratorId",
                     request."status" as "statusId",
                     absence."reviewer" as "reviewerId",
-                    CASE vacation."absence_id"
-                        WHEN NULL THEN ${Enum_Absence_Type.INFORMAL}
+                    --Cambio para que en front se identifique el Informal
+                    CASE 
+                        WHEN vacation."absence_id" IS NULL THEN ${Enum_Absence_Type.INFORMAL}
                         ELSE ${Enum_Absence_Type.VACATION}
                     END as "type",
 
