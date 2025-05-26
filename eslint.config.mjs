@@ -39,6 +39,7 @@ const eslintConfig = [
       parser: typescriptParser,
     },
     rules: {
+      'prettier/prettier': 'warn',
       'no-restricted-imports': ['error', { patterns: ['...*'] }],
       'react/react-in-jsx-scope': 'off',
       '@typescript-eslint/no-explicit-any': 'error',
