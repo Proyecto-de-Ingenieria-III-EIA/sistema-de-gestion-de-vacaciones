@@ -19,7 +19,7 @@ import {
   GET_ABSENCES_TIME_PERIOD,
   type GetAbsencesResponse,
   type Absence,
-} from '@/graphql/absence/prueba_simon';
+} from '@/graphql/absence/queriesConnection';
 
 export default function AbsenceCalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
